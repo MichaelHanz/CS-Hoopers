@@ -1,4 +1,4 @@
-import { useState, useRef, FormEvent } from 'react';
+import { useState, useRef, SyntheticEvent } from 'react';
 import { 
   Calendar, 
   MapPin, 
@@ -114,7 +114,7 @@ export default function App() {
   };
 
   // Form submission logic with precise local logging
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
     
     // Robust local validation checks
