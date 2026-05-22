@@ -1,0 +1,6 @@
+{
+  "name": "CS-Hoopers Roster registration",
+  "description": "Register team rosters for the CS-Hoopers 3v3 University Tournament.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

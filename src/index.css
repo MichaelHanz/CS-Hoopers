@@ -1,45 +1,341 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&family=Bungee+Inline&family=Inter:wght@400;500;600;700;800;900&family=Rubik+Mono+One&family=Stardos+Stencil:wght@400;700&family=Syne:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
-
-@theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Archivo Narrow", sans-serif;
-  
-  --color-brand-bg: #0A0A0A;
-  --color-brand-surface: #131313;
-  --color-brand-surface-dim: #0E0E0E;
-  --color-brand-surface-card: #1C1B1B;
-  --color-brand-primary: #FF5F1F; /* Neon Orange */
-  --color-brand-primary-dim: #FFB59C;
-  --color-brand-secondary: #00DAF3; /* Electric Blue */
-  --color-brand-secondary-dim: #BDF4FF;
-}
-
-/* Custom Scrollbar styled for athletic scoreboard precision */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0A0A0A;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #FF5F1F;
-  border-radius: 0px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #E5551B;
-}
 
 html {
   scroll-behavior: smooth;
-  background-color: #0A0A0A;
-  color: #E5E2E1;
 }
 
 body {
-  font-family: var(--font-sans);
+  background-color: #0A0A0A !important;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-urban: "Rubik Mono One", monospace;
+  --font-stencil: "Stardos Stencil", serif;
+  --font-marker: "Bungee Inline", cursive;
+  --font-syne: "Syne", sans-serif;
+  --font-archivo: "Archivo Narrow", sans-serif;
+
+  --color-brand-bg: #0A0A0A;
+  --color-brand-card: #111111;
+  --color-brand-magenta: #ff00ff;
+  --color-brand-green: #39ff14;
+  --color-brand-cyan: #00ffff;
+  --color-brand-yellow: #ffff00;
+}
+
+/* Authentic spider-verse glitch & chromatic aberration text effect */
+.glitch-effect {
+  position: relative;
+}
+.glitch-effect::before,
+.glitch-effect::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  pointer-events: none;
+}
+
+.glitch-effect::before {
+  left: 2px;
+  text-shadow: -2px 0 #ff00ff, 2px 2px #00ffff;
+  clip: rect(24px, 550px, 90px, 0);
+  animation: glitch-anim-2 2s infinite linear alternate-reverse;
+}
+
+.glitch-effect::after {
+  left: -2px;
+  text-shadow: -2px 0 #39ff14, -2px -2px #ffff00;
+  clip: rect(85px, 550px, 140px, 0);
+  animation: glitch-anim 1.5s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+  0% { clip: rect(61px, 9999px, 52px, 0); transform: translate(0); }
+  5% { clip: rect(33px, 9999px, 144px, 0); transform: translate(-2px, 2px); }
+  10% { clip: rect(121px, 9999px, 115px, 0); }
+  15% { clip: rect(144px, 9999px, 162px, 0); transform: translate(2px, -2px); }
+  20% { clip: rect(62px, 9999px, 180px, 0); }
+  25% { clip: rect(34px, 9999px, 42px, 0); }
+  35% { clip: rect(99px, 9999px, 63px, 0); }
+  50% { clip: rect(63px, 9999px, 37px, 0); }
+  75% { clip: rect(62px, 9999px, 70px, 0); transform: translate(2px, 0); }
+  90% { clip: rect(69px, 9999px, 54px, 0); transform: translate(-2px, 2px); }
+  100% { clip: rect(22px, 9999px, 39px, 0); transform: translate(0); }
+}
+
+@keyframes glitch-anim-2 {
+  0% { clip: rect(29px, 9999px, 200px, 0); }
+  10% { clip: rect(112px, 9999px, 49px, 0); }
+  20% { clip: rect(168px, 9999px, 139px, 0); }
+  30% { clip: rect(26px, 9999px, 20px, 0); }
+  40% { clip: rect(122px, 9999px, 118px, 0); }
+  50% { clip: rect(98px, 9999px, 107px, 0); }
+  60% { clip: rect(8px, 9999px, 134px, 0); }
+  70% { clip: rect(139px, 9999px, 137px, 0); }
+  80% { clip: rect(145px, 9999px, 115px, 0); }
+  90% { clip: rect(28px, 9999px, 126px, 0); }
+  100% { clip: rect(137px, 9999px, 2px, 0); }
+}
+
+@keyframes flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.35; }
+}
+
+@keyframes noise {
+  0%, 100% { background-position: 0 0; }
+  10% { background-position: -5% -10%; }
+  25% { background-position: -15% 5%; }
+  40% { background-position: 7% -15%; }
+  60% { background-position: 15% 5%; }
+  80% { background-position: 25% 15%; }
+}
+
+@keyframes float-up {
+  0% { transform: translateY(110vh) scale(0); opacity: 0; }
+  15% { opacity: var(--max-opacity, 0.4); transform: translateY(80vh) scale(1); }
+  85% { opacity: var(--max-opacity, 0.4); transform: translateY(20vh) scale(1); }
+  100% { transform: translateY(-10vh) scale(0); opacity: 0; }
+}
+
+@keyframes graffiti-flash {
+  0%, 85% { opacity: 0; transform: scale(0.9) rotate(-3deg); }
+  90% { opacity: 0.75; transform: scale(1.08) rotate(4deg); }
+  93% { opacity: 0; transform: scale(1) rotate(0deg); }
+  96% { opacity: 0.4; transform: scale(1.03) rotate(-1deg); }
+  98% { opacity: 0; transform: scale(1) rotate(0deg); }
+}
+
+/* Side Murals and background assets */
+.mural-side {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 20%;
+  z-index: 1;
+  opacity: 0.45;
+  mix-blend-mode: hard-light;
+  pointer-events: none;
+}
+
+.mural-left {
+  left: 0;
+  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA2O967A5oR88Dp95d7we6MfLGj5BXZOxtAPhZFVa47Eae_RYlbgGWD6eDaDN-y80UFcqut-lIttYabpzRB_ZZxgr3o4V7xGhEHRt2DsxJNSHn6AuXuZu3PUX4XhI4HMHJZrEphglAPkKe-leHE_vknvcgFbPuiqpOxWT_qeb_V6HU5lXqyetTW7j5eGf_CFSVFHpS2PoKr_WWe17JatcvI7BYfURt0FNoN9iw2H1Er92ISECqGUCFtwZXnOFWgbgheYsIZbwNvucUD');
+  background-size: cover;
+  background-position: right center;
+  border-right: 4px solid #ff00ff;
+  box-shadow: 8px 0 25px rgba(255, 0, 255, 0.25);
+}
+
+.mural-right {
+  right: 0;
+  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCvzwiNTS2GEWwQsFOiW1wuQRYhahC5seuMDglLsKbDKZw24UXgTQnNmuuz6pFIEGbjsziqh9Nuy-b0AmHEiecJ3tgnQ-IRAqLbarnM7DMwya-Hf8bxuUfaF-8WvFCncUhct1J240odHbIoz72M1nEUlBDLZcyK6vOvNB3_BrnrBPBenn5C6UBd_ak4gfMQTCz6AyCseqcyB85_si5c_KtDEnbAffRjy9LkYkUPC6eie4YeOKDRW9SHw0nwMDFk8uGQL7SbXtviCEXq');
+  background-size: cover;
+  background-position: left center;
+  border-left: 4px solid #39ff14;
+  box-shadow: -8px 0 25px rgba(57, 255, 20, 0.25);
+}
+
+.halftone-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at center, #000 1.2px, transparent 1.6px);
+  background-size: 5px 5px;
+  opacity: 0.22;
+  pointer-events: none;
+  z-index: 2;
+  animation: flicker 0.15s infinite alternate;
+}
+
+.visual-noise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0.12;
+  background-image: url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E');
+  animation: noise 0.22s infinite;
+}
+
+.graffiti-tag {
+  position: absolute;
+  font-family: 'Bungee Inline', cursive;
+  font-size: 3.5rem;
+  color: #ff00ff;
+  text-shadow: 2.5px 2.5px #00ffff, -2.5px -2.5px #ffff00;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4;
+  animation: graffiti-flash 4.5s infinite alternate;
+}
+
+/* Gritty cell-shaded visual tools */
+.tape-label {
+  background: #ffffff;
+  color: #000000;
+  padding: 3px 14px;
+  transform: rotate(-1.5deg);
+  display: inline-block;
+  font-family: "Stardos Stencil", serif;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  box-shadow: 3px 3.5px 0px #ff00ff;
+}
+
+.input-jagged {
+  background: rgba(0, 0, 0, 0.75);
+  border: 4px solid #333333;
+  clip-path: polygon(0.5% 0.5%, 99.5% 0%, 100% 98.5%, 0% 100%);
+  transition: all 0.2s ease;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.7);
+}
+
+.input-jagged:focus {
+  border-color: #39ff14;
+  outline: none;
+  box-shadow: 0 0 16px rgba(57, 255, 20, 0.35), inset 0 0 8px rgba(0, 0, 0, 0.7);
+}
+
+.stencil-text {
+  font-family: "Stardos Stencil", serif;
+  letter-spacing: 0.1em;
+}
+
+/* Custom glow utility */
+.glow-magenta {
+  box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
+}
+
+.glow-green {
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
+}
+
+/* Custom Outlined stroke for large numbers so it looks gritty */
+.font-outline {
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.15);
+  color: transparent;
+}
+
+@keyframes subtle-attention {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: 4px 4px 0px #39ff14;
+  }
+  3% {
+    transform: scale(1.06) rotate(-2deg);
+    box-shadow: 4px 4px 10px #ff00ff;
+  }
+  6% {
+    transform: scale(1.06) rotate(2deg);
+    box-shadow: 4px 4px 10px #00ffff;
+  }
+  9% {
+    transform: scale(1.04) rotate(-1.5deg);
+    box-shadow: 4px 4px 8px #39ff14;
+  }
+  12% {
+    transform: scale(1.02) rotate(1deg);
+    box-shadow: 4px 4px 6px #ff00ff;
+  }
+  15% {
+    transform: scale(1.01) rotate(-0.5deg);
+    box-shadow: 4px 4px 2px #39ff14;
+  }
+  18% {
+    transform: scale(1) rotate(0deg);
+    box-shadow: 4px 4px 0px #39ff14;
+  }
+}
+
+.attention-join-btn {
+  animation: subtle-attention 4.5s infinite ease-in-out;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
+              background-color 0.3s ease, 
+              color 0.3s ease;
+}
+
+.attention-join-btn:hover {
+  animation: none !important;
+  transform: scale(1.12) rotate(-1.5deg) !important;
+  background-color: #39ff14 !important;
+  color: #000000 !important;
+  box-shadow: 0 0 25px rgba(255, 0, 255, 0.95), 4px 4px 0px #ff00ff !important;
+}
+
+/* Real-time interactive overrides for Hero Section glitch */
+.introduction-section-interactive .glitch-effect::before {
+  transform: translate(calc(var(--mouse-rel-x, 0) * 35px), calc(var(--mouse-rel-y, 0) * 12px)) !important;
+  text-shadow: calc(var(--mouse-rel-x, 0) * -15px - 3px) 0 #ff00ff, calc(var(--mouse-rel-x, 0) * 15px + 3px) calc(var(--mouse-rel-y, 0) * 15px + 2px) #00ffff !important;
+  transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94), text-shadow 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: calc(0.45 + var(--mouse-dist, 0) * 0.55);
+}
+
+.introduction-section-interactive .glitch-effect::after {
+  transform: translate(calc(var(--mouse-rel-x, 0) * -35px), calc(var(--mouse-rel-y, 0) * -12px)) !important;
+  text-shadow: calc(var(--mouse-rel-x, 0) * 15px + 3px) 0 #39ff14, calc(var(--mouse-rel-x, 0) * -15px - 3px) calc(var(--mouse-rel-y, 0) * -15px - 2px) #ffff00 !important;
+  transition: transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94), text-shadow 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: calc(0.45 + var(--mouse-dist, 0) * 0.55);
+}
+
+/* Registration inputs custom, slow-glowing transitions */
+#registration-section input {
+  transition: border-color 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
+              box-shadow 0.6s cubic-bezier(0.25, 1, 0.5, 1), 
+              background-color 0.4s ease;
+}
+
+/* Custom extra-rich soft glowing pulse when input is focused */
+#registration-section input:focus {
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.3), 
+              0 0 5px rgba(57, 255, 20, 0.15), 
+              0 0 0 4px rgba(57, 255, 20, 0.2) !important;
+}
+
+/* Error input focus glow state if validation fails to keep visual accessibility precise */
+#registration-section input.border-brand-magenta:focus {
+  box-shadow: 0 0 15px rgba(255, 0, 255, 0.3), 
+              0 0 5px rgba(255, 0, 255, 0.15), 
+              0 0 0 4px rgba(255, 0, 255, 0.2) !important;
+}
+
+/* Custom player grid transition and glowing hover states */
+.player-grid-card {
+  transition: border-color 0.5s cubic-bezier(0.25, 1, 0.5, 1), 
+              box-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.player-01-card:hover {
+  border-color: #ff00ff !important;
+  box-shadow: 0 0 25px rgba(255, 0, 255, 0.5), 4px 4px 0px #000 !important;
+}
+
+.player-other-card:hover {
+  border-color: #00ffff !important; /* Blueish Neon / Cyan */
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.5), 4px 4px 0px #000 !important;
+}
+
+/* Custom Outlined stroke numeric badge transition & glow */
+.player-grid-card .font-outline {
+  transition: -webkit-text-stroke 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+              text-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+              opacity 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.player-01-card:hover .font-outline {
+  -webkit-text-stroke: 1.5px #ff00ff !important;
+  text-shadow: 0 0 15px rgba(255, 0, 255, 0.7), 0 0 30px rgba(255, 0, 255, 0.4) !important;
+  opacity: 0.95 !important;
+}
+
+.player-other-card:hover .font-outline {
+  -webkit-text-stroke: 1.5px #00ffff !important;
+  text-shadow: 0 0 15px rgba(0, 255, 255, 0.7), 0 0 30px rgba(0, 255, 255, 0.4) !important;
+  opacity: 0.95 !important;
 }

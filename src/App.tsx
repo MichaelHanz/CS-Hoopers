@@ -1,975 +1,984 @@
-import { useState, useRef, SyntheticEvent } from 'react';
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   Calendar, 
   MapPin, 
   Trophy, 
-  Users, 
   ChevronDown, 
-  ChevronUp, 
   CheckCircle2, 
-  Info, 
+  User, 
   Phone, 
-  IdCard, 
-  School, 
-  Award, 
-  Check, 
-  X,
-  Send,
-  Sparkles,
-  ExternalLink
-} from 'lucide-react';
+  GraduationCap, 
+  Briefcase, 
+  ShieldCheck, 
+  AlertTriangle,
+  Flame,
+} from "lucide-react";
 
-// Rigid Player Types as requested
-interface Player01 {
-  studentName: string;
-  matricNumber: string;
-  idPassportNumber: string;
-  contactNumber: string; // Required for Team Leader
-}
-
-interface PlayerStandard {
-  studentName: string;
-  matricNumber: string;
-  idPassportNumber: string;
-}
-
-// Rigid state array consisting of Player01 and standard PlayerStandard objects
-type PlayersState = [Player01, PlayerStandard, PlayerStandard];
-
-interface TeamRegistrationPayload {
-  teamName: string;
+// Types for Team and Players
+interface Player {
+  id: string;
+  number: string;
+  role: string;
+  name: string;
+  matricNo: string;
+  idPassport: string;
   school: string;
-  players: PlayersState;
-  submittedAt: string;
+  contactNumber?: string; // Only for Player 01 (Team Leader)
 }
+
+interface TeamRegistration {
+  teamName: string;
+  schoolFaculty: string;
+  players: [Player, Player, Player];
+}
+
+const AnimatedError = ({ error, className = "text-xs text-brand-magenta font-mono" }: { error?: string; className?: string }) => {
+  return (
+    <AnimatePresence initial={false}>
+      {error ? (
+        <motion.div
+          initial={{ height: 0, opacity: 0, marginTop: 0 }}
+          animate={{ height: "auto", opacity: 1, marginTop: 6 }}
+          exit={{ height: 0, opacity: 0, marginTop: 0 }}
+          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+          className="overflow-hidden"
+        >
+          <span className={`${className} block`}>{error}</span>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+};
 
 export default function App() {
-  // Navigation elements for active indicators
-  const [activeTab, setActiveTab] = useState<'intro' | 'register' | 'faq'>('intro');
+  // Mouse movement interactive glitch states for Hero section
+  const [mouseState, setMouseState] = useState({
+    x: 0,
+    y: 0,
+    relX: 0,
+    relY: 0,
+    dist: 0,
+    velocity: 0,
+    isHovered: false,
+  });
+  const [jitter, setJitter] = useState({ x: 0, y: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mouseRef = useRef({
+    x: 0,
+    y: 0,
+    lastX: 0,
+    lastY: 0,
+    lastTime: 0,
+    velocity: 0,
+    isHovered: false,
+  });
 
-  // Accordion faq active indexes
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-
-  // Rigid form state management meeting absolute specifications
-  const [teamName, setTeamName] = useState('');
-  const [school, setSchool] = useState('');
-  
-  const [players, setPlayers] = useState<PlayersState>([
-    { studentName: '', matricNumber: '', idPassportNumber: '', contactNumber: '' }, // Player 01 (Team Leader)
-    { studentName: '', matricNumber: '', idPassportNumber: '' },                   // Player 02
-    { studentName: '', matricNumber: '', idPassportNumber: '' }                    // Player 03
-  ]);
-
-  // Submission validation state
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [loggedPayload, setLoggedPayload] = useState<TeamRegistrationPayload | null>(null);
-
-  // Smooth-scrolling handler
-  const scrollToSection = (id: string, tab: 'intro' | 'register' | 'faq') => {
-    setActiveTab(tab);
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  // State update handlers for nested array
-  const handlePlayer01Change = (field: keyof Player01, value: string) => {
-    setPlayers(prev => {
-      const updated = [...prev] as PlayersState;
-      updated[0] = {
-        ...updated[0],
-        [field]: value
-      };
-      return updated;
-    });
-    // Clear field-specific error
-    if (errors[`player01-${field}`]) {
-      setErrors(prev => {
-        const copy = { ...prev };
-        delete copy[`player01-${field}`];
-        return copy;
-      });
-    }
-  };
-
-  const handlePlayerStandardChange = (index: 1 | 2, field: keyof PlayerStandard, value: string) => {
-    setPlayers(prev => {
-      const updated = [...prev] as PlayersState;
-      updated[index] = {
-        ...updated[index],
-        [field]: value
-      };
-      return updated;
-    });
-    // Clear field-specific error
-    if (errors[`player${index + 1}-${field}`]) {
-      setErrors(prev => {
-        const copy = { ...prev };
-        delete copy[`player${index + 1}-${field}`];
-        return copy;
-      });
-    }
-  };
-
-  // Form submission logic with precise local logging
-  const handleSubmit = (e: SyntheticEvent) => {
-    e.preventDefault();
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     
-    // Robust local validation checks
-    const newErrors: { [key: string]: string } = {};
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const relX = (x - centerX) / centerX;
+    const relY = (y - centerY) / centerY;
+    const dist = Math.sqrt(relX * relX + relY * relY);
+    
+    const now = Date.now();
+    const dt = now - mouseRef.current.lastTime;
+    let computedVelocity = mouseRef.current.velocity;
+    
+    if (dt > 0) {
+      const dx = x - mouseRef.current.lastX;
+      const dy = y - mouseRef.current.lastY;
+      const distanceMoved = Math.sqrt(dx * dx + dy * dy);
+      const instSpeed = distanceMoved / dt;
+      computedVelocity = computedVelocity * 0.4 + instSpeed * 0.6;
+      computedVelocity = Math.min(computedVelocity, 8); // clamp top speed
+    }
+    
+    mouseRef.current.lastX = x;
+    mouseRef.current.lastY = y;
+    mouseRef.current.lastTime = now;
+    mouseRef.current.velocity = computedVelocity;
+    mouseRef.current.x = x;
+    mouseRef.current.y = y;
+    
+    setMouseState(prev => ({
+      ...prev,
+      x,
+      y,
+      relX,
+      relY,
+      dist,
+      velocity: computedVelocity,
+      isHovered: true,
+    }));
+  };
 
-    if (!teamName.trim()) newErrors.teamName = 'Team name is required';
-    if (!school.trim()) newErrors.school = 'School or Faculty name is required';
+  const handleMouseLeave = () => {
+    mouseRef.current.velocity = 0;
+    mouseRef.current.isHovered = false;
+    setMouseState(prev => ({
+      ...prev,
+      relX: 0,
+      relY: 0,
+      dist: 0,
+      velocity: 0,
+      isHovered: false,
+    }));
+  };
 
-    // Player 01 Validation
-    if (!players[0].studentName.trim()) newErrors['player01-studentName'] = 'Student name is required';
-    if (!players[0].matricNumber.trim()) newErrors['player01-matricNumber'] = 'Matric number is required';
-    if (!players[0].idPassportNumber.trim()) newErrors['player01-idPassportNumber'] = 'ID/Passport number is required';
-    if (!players[0].contactNumber.trim()) newErrors['player01-contactNumber'] = 'Contact number is required for Team Leader';
+  useEffect(() => {
+    if (!mouseState.isHovered) {
+      setJitter({ x: 0, y: 0 });
+      return;
+    }
 
-    // Player 02 Validation
-    if (!players[1].studentName.trim()) newErrors['player02-studentName'] = 'Student name is required';
-    if (!players[1].matricNumber.trim()) newErrors['player02-matricNumber'] = 'Matric number is required';
-    if (!players[1].idPassportNumber.trim()) newErrors['player02-idPassportNumber'] = 'ID/Passport number is required';
+    let active = true;
+    let animId: number;
 
-    // Player 03 Validation
-    if (!players[2].studentName.trim()) newErrors['player03-studentName'] = 'Student name is required';
-    if (!players[2].matricNumber.trim()) newErrors['player03-matricNumber'] = 'Matric number is required';
-    if (!players[2].idPassportNumber.trim()) newErrors['player03-idPassportNumber'] = 'ID/Passport number is required';
+    const tick = () => {
+      if (!active) return;
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      // Scroll to the first error item or general registration container
-      const regSection = document.getElementById('registration');
-      if (regSection) {
-        regSection.scrollIntoView({ behavior: 'smooth' });
+      mouseRef.current.velocity *= 0.92;
+      const vel = mouseRef.current.velocity;
+
+      if (vel > 1.2) {
+        const jX = (Math.random() - 0.5) * (vel * 12);
+        const jY = (Math.random() - 0.5) * (vel * 18);
+        setJitter({ x: jX, y: jY });
+      } else {
+        setJitter({ x: 0, y: 0 });
+      }
+
+      setMouseState(prev => ({
+        ...prev,
+        velocity: vel
+      }));
+
+      animId = requestAnimationFrame(tick);
+    };
+
+    animId = requestAnimationFrame(tick);
+
+    return () => {
+      active = false;
+      cancelAnimationFrame(animId);
+    };
+  }, [mouseState.isHovered]);
+
+  // State for the Form
+  const [formData, setFormData] = useState<TeamRegistration>({
+    teamName: "",
+    schoolFaculty: "",
+    players: [
+      {
+        id: "p1",
+        number: "PLAYER 01",
+        role: "TEAM LEADER",
+        name: "",
+        matricNo: "",
+        idPassport: "",
+        school: "",
+        contactNumber: ""
+      },
+      {
+        id: "p2",
+        number: "PLAYER 02",
+        role: "ACTIVE ROSTER",
+        name: "",
+        matricNo: "",
+        idPassport: "",
+        school: ""
+      },
+      {
+        id: "p3",
+        number: "PLAYER 03",
+        role: "ACTIVE ROSTER",
+        name: "",
+        matricNo: "",
+        idPassport: "",
+        school: ""
+      }
+    ]
+  });
+
+  // Simple accordion state for FAQ
+  const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
+  // Form error notification state
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  
+  // Submit success state
+  const [submittedData, setSubmittedData] = useState<TeamRegistration | null>(null);
+
+  // Input change handler for top level team details
+  const handleTeamChange = (field: "teamName" | "schoolFaculty", value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    // Clear field error on change
+    if (formErrors[field]) {
+      setFormErrors(prev => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
+  // Change handler for player inputs
+  const handlePlayerChange = (playerIndex: number, field: keyof Player, value: string) => {
+    setFormData(prev => {
+      const updatedPlayers = [...prev.players] as [Player, Player, Player];
+      updatedPlayers[playerIndex] = {
+        ...updatedPlayers[playerIndex],
+        [field]: value
+      };
+      return {
+        ...prev,
+        players: updatedPlayers
+      };
+    });
+
+    // Clear specific field errors
+    const errorKey = `p${playerIndex + 1}_${field}`;
+    if (formErrors[errorKey]) {
+      setFormErrors(prev => {
+        const next = { ...prev };
+        delete next[errorKey];
+        return next;
+      });
+    }
+  };
+
+  // Form validation & submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+
+    // Validate Team info
+    if (!formData.teamName.trim()) {
+      errors.teamName = "Team Name is required";
+    }
+    if (!formData.schoolFaculty.trim()) {
+      errors.schoolFaculty = "School/Faculty is required";
+    }
+
+    // Validate players
+    formData.players.forEach((player, idx) => {
+      const i = idx + 1;
+      if (!player.name.trim()) {
+        errors[`p${i}_name`] = `Player 0${i} Name is required`;
+      }
+      if (!player.matricNo.trim()) {
+        errors[`p${i}_matricNo`] = `Player 0${i} Metric/Student ID is required`;
+      }
+      if (!player.idPassport.trim()) {
+        errors[`p${i}_idPassport`] = `Player 0${i} ID/Passport is required`;
+      }
+      if (!player.school.trim()) {
+        errors[`p${i}_school`] = `Player 0${i} School is required`;
+      }
+      
+      // Player 01 validation for Contact
+      if (idx === 0) {
+        if (!player.contactNumber || !player.contactNumber.trim()) {
+          errors.p1_contactNumber = "Team Leader Contact Number is required";
+        }
+      }
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      // Scroll to the error banner or form
+      const formElement = document.getElementById("registration-section");
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: "smooth" });
       }
       return;
     }
 
-    // Prepare Payload
-    const payload: TeamRegistrationPayload = {
-      teamName: teamName.trim(),
-      school: school.trim(),
-      players: [
-        {
-          studentName: players[0].studentName.trim(),
-          matricNumber: players[0].matricNumber.trim(),
-          idPassportNumber: players[0].idPassportNumber.trim(),
-          contactNumber: players[0].contactNumber.trim()
-        },
-        {
-          studentName: players[1].studentName.trim(),
-          matricNumber: players[1].matricNumber.trim(),
-          idPassportNumber: players[1].idPassportNumber.trim()
-        },
-        {
-          studentName: players[2].studentName.trim(),
-          matricNumber: players[2].matricNumber.trim(),
-          idPassportNumber: players[2].idPassportNumber.trim()
-        }
-      ],
-      submittedAt: new Date().toISOString()
-    };
+    // Success payload
+    console.log("SUCCESSFUL REGISTRATION PAYLOAD:", JSON.stringify(formData, null, 2));
+    setFormErrors({});
+    setSubmittedData(formData);
 
-    // Rigorously fulfill: "Log the final JSON payload to the console when 'SUBMIT ROSTER' is clicked."
-    console.log('CS-HOOPERS ROSTER SUBMISSION PAYLOAD:', JSON.stringify(payload, null, 2));
-
-    setLoggedPayload(payload);
-    setIsSubmitted(true);
+    // Scroll automatically to success panel
+    setTimeout(() => {
+      const successPanel = document.getElementById("success-panel");
+      if (successPanel) {
+        successPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 150);
   };
 
   const handleResetForm = () => {
-    setTeamName('');
-    setSchool('');
-    setPlayers([
-      { studentName: '', matricNumber: '', idPassportNumber: '', contactNumber: '' },
-      { studentName: '', matricNumber: '', idPassportNumber: '' },
-      { studentName: '', matricNumber: '', idPassportNumber: '' }
-    ]);
-    setErrors({});
-    setIsSubmitted(false);
-    setLoggedPayload(null);
+    setFormData({
+      teamName: "",
+      schoolFaculty: "",
+      players: [
+        {
+          id: "p1",
+          number: "PLAYER 01",
+          role: "TEAM LEADER",
+          name: "",
+          matricNo: "",
+          idPassport: "",
+          school: "",
+          contactNumber: ""
+        },
+        {
+          id: "p2",
+          number: "PLAYER 02",
+          role: "ACTIVE ROSTER",
+          name: "",
+          matricNo: "",
+          idPassport: "",
+          school: ""
+        },
+        {
+          id: "p3",
+          number: "PLAYER 03",
+          role: "ACTIVE ROSTER",
+          name: "",
+          matricNo: "",
+          idPassport: "",
+          school: ""
+        }
+      ]
+    });
+    setSubmittedData(null);
+    setFormErrors({});
   };
 
-  // FAQ mock database
-  const faqData = [
+  // FAQ mock data
+  const faqs = [
     {
-      question: "Who is eligible to participate?",
-      answer: "The tournament is strictly open to active undergrad and postgrad college students. A valid student ID card or matric registration document must be presented during live on-court check-in at the Varsity Arena."
+      question: "ELIGIBILITY RULES?",
+      answer: "Valid university or college students only. All registered athletes must bring their physical active Student ID to the venue on tournament days. No ID, no entry onto the court. Strict academic verification applies."
     },
     {
-      question: "What are the uniform requirements?",
-      answer: "Teams must sport matching athletic standard jerseys or t-shirts with clearly visible distinct back numbers. In the event of color conflicts on court, high-contrast tournament bibs will be supplied by our technical court committee."
+      question: "UNIFORM CODE?",
+      answer: "Teams must sport matching color jerseys. High-contrast numbers must be permanently visible on either the front or the back of the active tops. We strongly suggest rugged, gritty sportswear built to survive real street play."
     },
     {
-      question: "How is scheduling handled?",
-      answer: "The university tournament uses a strict double-elimination knockout bracket architecture. Final time schedules and court numbers will be published on our boards exactly 3 days prior. All players on the roster must check in at court control 30 minutes before tip-off."
+      question: "GAME SCHEDULE?",
+      answer: "Full elimination brackets will drop exactly 48 hours after user registration windows officially lock. Standard tournament slots are rigid with zero rescheduling options. Check-in is precisely 30 minutes before your tip-off."
     }
   ];
 
   return (
-    <div className="min-h-screen bg-brand-bg text-[#e5e2e1] overflow-x-hidden font-sans selection:bg-brand-primary selection:text-black">
+    <div id="app-root" className="bg-[#0A0A0A] text-white min-h-screen font-sans selection:bg-brand-green selection:text-black antialiased relative overflow-x-hidden">
       
-      {/* GLOBAL SYSTEM ANNOUNCEMENT HEADER ACCORDING TO ATHLETIC SCOREBOARD MOOD */}
-      <div className="bg-brand-primary/10 border-b border-brand-primary/20 text-center py-2 px-4 text-xs font-mono tracking-wider flex items-center justify-center gap-2">
-        <span className="inline-block w-2 bg-brand-primary animate-ping" style={{ height: '8px', width: '8px' }}></span>
-        <span className="text-brand-primary uppercase font-bold text-[10px] md:text-xs">SYSTEM STATUS: ROSTERS UNLOCKED • REGISTER TODAY</span>
-      </div>
+      {/* Gritty Street Overlays and Side Murals for exact visual similarity */}
+      <div className="halftone-overlay pointer-events-none"></div>
+      <div className="visual-noise pointer-events-none"></div>
 
-      {/* STICKY GLASSMORPHIC HEADER */}
-      <header className="sticky top-0 z-50 backdrop-blur-md bg-brand-bg/80 border-b border-[#2A2A2A]">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-16 h-20 flex items-center justify-between">
+      {/* Floating Street Spray Graffiti tags on desktop for visual energy */}
+      <div className="hidden xl:block graffiti-tag top-[14%] left-[10%] rotate-[-12deg] text-brand-magenta select-none">SLAM</div>
+      <div className="hidden xl:block graffiti-tag top-[44%] right-[8%] rotate-[14deg] text-brand-green select-none">DUNK</div>
+      <div className="hidden xl:block graffiti-tag bottom-[25%] left-[6%] rotate-[-7deg] text-brand-cyan select-none">UTM</div>
+
+      {/* Left and Right Side Gritty Athlete Murals on Large Desktops */}
+      <div className="hidden lg:block mural-side mural-left animate-pulse duration-[8000ms]"></div>
+      <div className="hidden lg:block mural-side mural-right animate-pulse duration-[8500ms]"></div>
+
+      {/* FIXED TOP NAVIGATION BAR */}
+      <nav id="top-navigation" className="bg-black/95 backdrop-blur-md sticky top-0 border-b-4 border-brand-magenta z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex justify-between items-center">
           
-          {/* Logo */}
-          <div 
-            className="flex items-center gap-2 cursor-pointer"
-            onClick={() => scrollToSection('introduction', 'intro')}
-          >
-            <div className="border-l-4 border-brand-primary pl-2 py-1">
-              <span className="font-display text-xl md:text-2xl font-extrabold tracking-widest text-[#e5e2e1]">
-                VARSITY<span className="text-brand-primary">ARENA</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Navigation Links with Smooth Scroll */}
-          <nav className="hidden md:flex items-center gap-10">
-            <button 
-              onClick={() => scrollToSection('introduction', 'intro')}
-              className={`font-display text-sm tracking-widest font-bold transition-all relative py-2 uppercase rounded-none ${
-                activeTab === 'intro' ? 'text-brand-primary' : 'text-[#e5e2e1] hover:text-brand-primary'
-              }`}
+          {/* Logo with Street Attitude */}
+          <a href="#introduction-section" className="flex items-center gap-2 group relative">
+            <Flame className="w-8 h-8 text-brand-green animate-pulse" />
+            <div 
+              className="font-urban text-lg md:text-2xl tracking-tighter text-brand-green italic leading-none glitch-effect"
+              data-text="VARSITY_ARENA"
             >
+              VARSITY<span className="text-brand-magenta block text-xs md:text-sm tracking-widest font-bold">ARENA</span>
+            </div>
+          </a>
+
+          {/* Nav Items */}
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#introduction-section" className="font-marker text-lg text-brand-magenta hover:text-brand-green transition-colors tracking-widest">
               INTRODUCTION
-              {activeTab === 'intro' && (
-                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-brand-primary"></span>
-              )}
-            </button>
-            <button 
-              onClick={() => scrollToSection('registration', 'register')}
-              className={`font-display text-sm tracking-widest font-bold transition-all relative py-2 uppercase rounded-none ${
-                activeTab === 'register' ? 'text-brand-primary' : 'text-[#e5e2e1] hover:text-brand-primary'
-              }`}
-            >
+            </a>
+            <a href="#registration-section" className="font-marker text-lg text-white hover:text-brand-magenta transition-colors tracking-widest">
               REGISTRATION
-              {activeTab === 'register' && (
-                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-brand-primary"></span>
-              )}
-            </button>
-            <button 
-              onClick={() => scrollToSection('faq', 'faq')}
-              className={`font-display text-sm tracking-widest font-bold transition-all relative py-2 uppercase rounded-none ${
-                activeTab === 'faq' ? 'text-brand-primary' : 'text-[#e5e2e1] hover:text-brand-primary'
-              }`}
-            >
+            </a>
+            <a href="#faq-section" className="font-marker text-lg text-white hover:text-brand-magenta transition-colors tracking-widest">
               FAQ
-              {activeTab === 'faq' && (
-                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-brand-primary"></span>
-              )}
-            </button>
-          </nav>
+            </a>
+          </div>
 
-          {/* Action button */}
-          <button 
-            type="button"
-            onClick={() => scrollToSection('registration', 'register')}
-            className="bg-brand-primary text-black font-display font-black text-xs md:text-sm tracking-widest py-3 px-6 rounded-none border border-brand-primary hover:bg-transparent hover:text-brand-primary transition-all duration-300 transform active:scale-95"
+          {/* Join Now Action */}
+          <a 
+            href="#registration-section"
+            className="attention-join-btn relative inline-flex items-center justify-center font-urban text-xs md:text-sm px-4 md:px-6 py-2 bg-brand-magenta text-black border-2 border-black font-extrabold select-none shadow-[4px_4px_0px_#39ff14] active:translate-y-[2px]"
+            id="nav-join-btn"
           >
-            REGISTER NOW
-          </button>
+            JOIN NOW
+          </a>
         </div>
-      </header>
+      </nav>
 
-      {/* HERO / HEADER SECTION */}
-      <section id="introduction" className="relative border-b border-[#2A2A2A] min-h-[90vh] flex flex-col justify-center">
-        {/* Absolute Background with dark Overlay & High-contrast Unsplash Photo */}
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1544698310-74ea9d1c8258?auto=format&fit=crop&q=80&w=1920" 
-            alt="Varsity Arena Dark Moody Basketball Hoop" 
-            className="w-full h-full object-cover object-bottom filter brightness-[0.25] contrast-[1.1]"
-            referrerPolicy="no-referrer"
-          />
-          {/* Kinetic gradients and dark vignettes protecting readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-brand-bg via-[#0A0A0A]/70 to-[#0A0A0A]/90 z-10"></div>
-          <div className="absolute inset-y-0 right-0 w-1/3 bg-gradient-to-l from-brand-primary/10 to-transparent pointer-events-none z-10"></div>
-          <div className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-brand-secondary/5 to-transparent pointer-events-none z-10"></div>
-        </div>
-
-        {/* Hero Interactive Area */}
-        <div className="relative max-w-[1280px] mx-auto px-4 md:px-16 py-16 z-20 w-full flex-grow flex flex-col justify-center">
-          
-          {/* Active status badge */}
-          <div className="self-start mb-6">
-            <div className="inline-flex items-center gap-2 border border-brand-secondary/30 bg-brand-secondary/10 px-4 py-1.5 rounded-none">
-              <span className="w-2 h-2 rounded-full bg-brand-secondary animate-pulse"></span>
-              <span className="font-mono text-[10px] md:text-xs text-brand-secondary uppercase tracking-widest font-black">
-                REGISTRATIONS OPEN
-              </span>
-            </div>
-          </div>
-
-          {/* Heading */}
-          <h1 className="font-display text-4xl md:text-7xl font-black text-[#e5e2e1] leading-tight md:leading-none tracking-tight uppercase max-w-4xl mb-6">
-            CS-HOOPERS <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-primary-dim">UNIVERSITY TOURNAMENT</span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="font-sans text-[#c8c6c5] text-base md:text-lg max-w-2xl leading-relaxed mb-12">
-            The premier collegiate basketball tournament where data meets the court. 
-            Assemble your squad, register your roster, and prepare for high-stakes competition. 
-            Experience elite 3v3 gameplay tracked with precision analytics.
-          </p>
-
-          {/* Three Tournament Stat Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl">
+      {/* HERO SECTION / INTRODUCTION */}
+      <section 
+        id="introduction-section" 
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        className="relative min-h-[90vh] flex flex-col justify-center items-center py-16 px-4 md:px-8 max-w-7xl mx-auto z-10 overflow-hidden introduction-section-interactive"
+        style={{
+          "--mouse-rel-x": mouseState.relX,
+          "--mouse-rel-y": mouseState.relY,
+          "--mouse-dist": mouseState.dist,
+        } as React.CSSProperties}
+      >
+        
+        {/* Dynamic Scanline Strips and Cursor Light Leaks (Effect B) */}
+        {mouseState.isHovered && (
+          <div 
+            className="absolute pointer-events-none z-30 mix-blend-screen overflow-hidden"
+            style={{
+              left: mouseState.x,
+              top: mouseState.y,
+              transform: 'translate(-50%, -50%)',
+              width: `${140 + mouseState.velocity * 60}px`,
+              height: `${140 + mouseState.velocity * 60}px`,
+              transition: 'width 0.08s ease-out, height 0.08s ease-out',
+            }}
+          >
+            {/* Subtle light leakage */}
+            <div 
+              className="absolute rounded-full w-full h-full blur-2xl opacity-40 mix-blend-color-dodge transition-all duration-200"
+              style={{
+                background: mouseState.velocity > 1.2
+                  ? (Math.random() > 0.5 ? '#ff00ff' : '#00ffff')
+                  : 'radial-gradient(circle, rgba(0,255,255,0.25) 0%, rgba(255,0,255,0.15) 70%)'
+              }}
+            />
             
-            {/* Card 01 - Tournament Dates */}
-            <div className="bg-[#1C1B1B] border border-[#2A2A2A] rounded-none p-6 relative group hover:border-brand-primary/50 transition-all duration-300">
-              <div className="absolute top-0 left-0 h-[3px] w-12 bg-brand-primary group-hover:w-full transition-all duration-300"></div>
-              <div className="flex items-center gap-4 mb-3">
-                <div className="bg-brand-primary/10 p-3 text-brand-primary rounded-none">
-                  <Calendar className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-sm text-[#e5e2e1] uppercase tracking-wider">Tournament Dates</h3>
-                  <p className="font-mono text-xs text-brand-primary">OCT 15 - 20, 2026</p>
-                </div>
+            {/* Toxic cyan and hot magenta flashing micro layers when velocity is high */}
+            {mouseState.velocity > 1.2 && (
+              <div className="absolute inset-0">
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const stripWidth = 100 + Math.random() * 150;
+                  const stripHeight = 3 + Math.random() * 14;
+                  const leftPos = (Math.random() - 0.5) * 100;
+                  const topPos = Math.random() * 100;
+                  const useMagenta = Math.random() > 0.5;
+                  const skew = (Math.random() - 0.5) * 50;
+                  return (
+                    <div
+                      key={i}
+                      className="absolute"
+                      style={{
+                        width: `${stripWidth}px`,
+                        height: `${stripHeight}px`,
+                        left: `calc(50% + ${leftPos}px)`,
+                        top: `${topPos}%`,
+                        transform: `translate(-50%, -50%) skewX(${skew}deg)`,
+                        backgroundColor: useMagenta ? '#ff00ff' : '#00ffff',
+                        boxShadow: `0 0 12px ${useMagenta ? '#ff00ff' : '#00ffff'}`,
+                        opacity: 0.6 + Math.random() * 0.4,
+                      }}
+                    />
+                  );
+                })}
               </div>
-            </div>
+            )}
+          </div>
+        )}
 
-            {/* Card 02 - Venue */}
-            <div className="bg-[#1C1B1B] border border-[#2A2A2A] rounded-none p-6 relative group hover:border-brand-secondary/50 transition-all duration-300">
-              <div className="absolute top-0 left-0 h-[3px] w-12 bg-brand-secondary group-hover:w-full transition-all duration-300"></div>
-              <div className="flex items-center gap-4 mb-3">
-                <div className="bg-brand-secondary/10 p-3 text-brand-secondary rounded-none">
-                  <MapPin className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-sm text-[#e5e2e1] uppercase tracking-wider">Venue</h3>
-                  <p className="font-sans text-xs text-stone-300">Main Varsity Arena</p>
-                </div>
-              </div>
-            </div>
+        {/* Registration Badge Warning */}
+        <div id="intro-status" className="inline-flex items-center gap-2 px-5 py-2 bg-black border-2 border-brand-green mb-8 rotate-[-1deg] hover:rotate-1 transition-transform pointer-events-none">
+          <span className="w-3 h-3 rounded-full bg-brand-green animate-ping"></span>
+          <span className="font-stencil text-brand-green text-sm md:text-base tracking-widest">REGISTRATIONS OPEN</span>
+        </div>
 
-            {/* Card 03 - Prize Pool */}
-            <div className="bg-[#1C1B1B] border border-[#2A2A2A] rounded-none p-6 relative group hover:border-brand-primary/50 transition-all duration-300">
-              <div className="absolute top-0 left-0 h-[3px] w-12 bg-brand-primary group-hover:w-full transition-all duration-300"></div>
-              <div className="flex items-center gap-4 mb-3">
-                <div className="bg-brand-primary/10 p-3 text-brand-primary rounded-none">
-                  <Trophy className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-sm text-[#e5e2e1] uppercase tracking-wider">Prize Pool</h3>
-                  <p className="font-mono text-xs text-brand-primary font-bold">$5,000 + Championship Rings</p>
-                </div>
-              </div>
-            </div>
+        {/* Glitched Main Title with True Chromatic Aberration data-text attributes */}
+        <div className="text-center w-full max-w-5xl mb-12 relative z-20 px-2">
+          <h1 
+            id="hero-title"
+            className="font-syne font-extrabold leading-none tracking-tighter italic cursor-default select-none uppercase"
+            style={{
+              transform: `translate(${jitter.x}px, ${jitter.y}px)`,
+              transition: 'transform 0.05s ease-out'
+            }}
+          >
+            <span 
+              className="text-brand-magenta block glitch-effect tracking-tight text-[10vw] sm:text-6xl md:text-8xl lg:text-[110px] xl:text-[130px]"
+              data-text="CS-HOOPERS"
+            >
+              CS-HOOPERS
+            </span>
+            <span className="bg-brand-green text-black px-2.5 sm:px-8 py-1 sm:py-2.5 mx-1 sm:mx-2 my-2.5 sm:my-3 transform rotate-[1.5deg] inline-block font-urban text-[3.8vw] sm:text-3xl md:text-5xl lg:text-7xl tracking-normal shadow-[3px_3px_0px_#ff00ff] md:shadow-[6px_6px_0px_#ff00ff]">
+              COMPUTER SCIENCE
+            </span>
+            <span 
+              className="text-white block tracking-tighter text-[7.8vw] sm:text-6xl md:text-8xl lg:text-[110px] xl:text-[130px] mt-2 glitch-effect leading-none"
+              data-text="SPORTS DAY"
+            >
+              SPORTS DAY
+            </span>
+          </h1>
+        </div>
 
+        {/* Tournament Manifesto */}
+        <div className="max-w-2xl text-center bg-zinc-950/90 p-6 md:p-8 border-l-4 border-brand-magenta mb-16 shadow-[8px_8px_0px_#111]">
+          <p className="font-sans text-base md:text-lg text-zinc-300 leading-relaxed">
+            The premier collegiate basketball tournament where data meets the asphalt. Assemble your squad, register your roster, and prepare for high-stakes urban competition.
+          </p>
+        </div>
+
+        {/* 3 Info Cards with Glassmorphic Gradient backgrounds & neon glow borders */}
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl">
+          
+          {/* Dates Card */}
+          <div 
+            id="card-dates"
+            className="bg-gradient-to-br from-[#111111]/90 via-[#1d1233]/90 to-[#0A0A0A]/90 backdrop-blur-md border-4 border-brand-magenta p-8 flex flex-col items-center text-center transform rotate-[-1deg] transition-all hover:rotate-0 hover:scale-105 shadow-[6px_6px_0px_#000]"
+          >
+            <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-magenta flex items-center justify-center mb-4">
+              <Calendar className="w-6 h-6 text-brand-magenta" />
+            </div>
+            <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">DATES</h3>
+            <p className="stencil-text text-xl md:text-2xl text-brand-green font-bold">
+              OCT 15 - 20, 2024
+            </p>
+            <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">Live Schedule</span>
           </div>
 
-          {/* Quick CTA back down to registration link */}
-          <div className="mt-12">
-            <button 
-              onClick={() => scrollToSection('registration', 'register')}
-              className="inline-flex items-center gap-3 border-b-2 border-brand-primary pb-1 text-sm font-bold tracking-widest text-[#e5e2e1] hover:text-brand-primary hover:border-brand-primary-dim transition-all uppercase"
-            >
-              Enter Roster details immediately <span className="animate-bounce">↓</span>
-            </button>
+          {/* Venue Card */}
+          <div 
+            id="card-venue"
+            className="bg-gradient-to-br from-[#111111]/90 via-[#0a2315]/90 to-[#0A0A0A]/90 backdrop-blur-md border-4 border-brand-green p-8 flex flex-col items-center text-center transform rotate-[1.5deg] transition-all hover:rotate-0 hover:scale-105 shadow-[6px_6px_0px_#000]"
+          >
+            <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-green flex items-center justify-center mb-4">
+              <MapPin className="w-6 h-6 text-brand-green" />
+            </div>
+            <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">VENUE</h3>
+            <p className="stencil-text text-xl md:text-2xl text-brand-magenta font-bold">
+              MAIN VARSITY ARENA
+            </p>
+            <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">UTM COURT A</span>
+          </div>
+
+          {/* Prize Card */}
+          <div 
+            id="card-prize"
+            className="bg-gradient-to-br from-[#111111]/90 via-[#0d1c33]/90 to-[#0A0A0A]/90 backdrop-blur-md border-4 border-brand-magenta p-8 flex flex-col items-center text-center transform rotate-[-2deg] transition-all hover:rotate-0 hover:scale-105 shadow-[6px_6px_0px_#000]"
+          >
+            <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-magenta flex items-center justify-center mb-4">
+              <Trophy className="w-6 h-6 text-brand-magenta" />
+            </div>
+            <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">PRIZE</h3>
+            <p className="stencil-text text-xl md:text-2xl text-brand-green font-bold">
+              $5,000 + RINGS
+            </p>
+            <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">Championship Pack</span>
           </div>
 
         </div>
+
       </section>
 
-      {/* REGISTRATION SECTION */}
-      <section id="registration" className="py-24 border-b border-[#2A2A2A] bg-brand-bg relative">
-        <div className="absolute top-10 right-10 opacity-5 pointer-events-none select-none z-0 hidden lg:block">
-          <span className="font-display text-[220px] font-black leading-none text-[#ffffff]">COURT</span>
-        </div>
-
-        <div className="max-w-[1280px] mx-auto px-4 md:px-16 relative z-10">
+      {/* CORE REGISTRATION SECTION */}
+      <section 
+        id="registration-section" 
+        className="py-24 px-4 md:px-8 border-y-8 border-black bg-[#0A0A0A] relative z-20"
+      >
+        <div className="max-w-4xl mx-auto">
           
-          {/* Section Heading */}
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <div className="inline-block p-1 bg-brand-primary/10 text-brand-primary mb-3">
-              <Award className="w-6 h-6 mx-auto" />
-            </div>
-            <h2 className="font-display text-4xl md:text-5xl font-black tracking-tight text-white uppercase mb-4">
-              ENTER THE ARENA
+          {/* Header */}
+          <div className="text-center mb-16 relative z-10">
+            <h2 
+              id="registration-title"
+              className="font-urban font-extrabold text-4xl md:text-6xl text-white uppercase italic tracking-tighter glitch-effect inline-block"
+              data-text="ENTER THE ARENA"
+            >
+              ENTER THE <span className="text-brand-green">ARENA</span>
             </h2>
-            <div className="h-[2px] w-20 bg-brand-primary mx-auto mb-4"></div>
-            <p className="font-sans text-[#c8c6c5] text-sm md:text-base">
-              Lock in your 3-member team. Finalize your roster for the 3v3 battle. Prepare for tip-off.
+            {/* Hand-drawn/graffiti paint brush looking thick underline like in image */}
+            <div className="h-4 w-48 bg-brand-magenta mx-auto my-4 transform rotate-[-2.5deg] skew-x-[-10deg] opacity-90 shadow-[2px_2px_0px_#000]"></div>
+            <p className="font-sans text-zinc-400 max-w-md mx-auto text-sm md:text-base">
+              Lock in your 3-member team. Finalize your roster for the 3v3 battle. No subs. No excuses.
             </p>
           </div>
 
-          {/* FORM AREA / SUBMIT SUCCESS WRAPPERS */}
-          {isSubmitted && loggedPayload ? (
-            
-            // Submited Status View
-            <div className="max-w-4xl mx-auto bg-[#1C1B1B] border-2 border-brand-secondary rounded-none p-8 md:p-12 transition-all">
-              <div className="flex flex-col items-center text-center mb-8">
-                <div className="w-20 h-20 bg-brand-secondary/10 flex items-center justify-center border border-brand-secondary/30 mb-6">
-                  <CheckCircle2 className="w-12 h-12 text-brand-secondary animate-pulse" />
+          {/* Verification Errors Banner */}
+          <AnimatePresence initial={false}>
+            {Object.keys(formErrors).length > 0 && (
+              <motion.div
+                initial={{ height: 0, opacity: 0, scale: 0.95, marginBottom: 0 }}
+                animate={{ height: "auto", opacity: 1, scale: 1, marginBottom: 32 }}
+                exit={{ height: 0, opacity: 0, scale: 0.95, marginBottom: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                className="overflow-hidden"
+              >
+                <div id="error-alert" className="p-6 bg-red-950/90 border-4 border-brand-magenta text-white shadow-[6px_6px_0px_#000] rotate-[-0.5deg]">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-6 h-6 text-brand-magenta shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="font-urban text-brand-magenta tracking-wider text-sm mb-2 uppercase">ROSTER VERIFICATION FAILURE</h4>
+                      <p className="text-xs text-zinc-300 font-medium mb-3">
+                        Your team submission lacks details. Please fill in all required fields marked in the inputs:
+                      </p>
+                      <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1 font-mono">
+                        {Object.values(formErrors).slice(0, 5).map((err, idx) => (
+                          <li key={idx}>{err}</li>
+                        ))}
+                        {Object.keys(formErrors).length > 5 && (
+                          <li>And {Object.keys(formErrors).length - 5} more roster errors...</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-display text-3xl font-black text-white uppercase tracking-tight">Roster Locked & Saved</h3>
-                <p className="text-brand-secondary font-mono text-xs tracking-wider uppercase mt-2">ROSTER RECEIVED SECURELY AT VARSITY CONTROL</p>
-                <p className="text-[#c8c6c5] text-xs max-w-md mt-4">
-                  The roster submission below has been successfully evaluated and logged to the central console. Ensure your team brings Student ID credentials on tournament check-in day.
-                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Active Form with offset glowing framing borders for exact mockup match */}
+          <div className="relative mb-8 group">
+            {/* Offset Neon Background Borders */}
+            <div className="absolute inset-0 border-4 border-brand-magenta translate-x-3 translate-y-3 pointer-events-none opacity-80 z-0"></div>
+            <div className="absolute inset-0 border-4 border-brand-green -translate-x-1.5 -translate-y-1.5 pointer-events-none opacity-90 z-0"></div>
+
+            <form 
+              onSubmit={handleSubmit}
+              className="bg-[#111111]/95 backdrop-blur-md p-6 md:p-12 border-4 border-zinc-900 relative z-10 shadow-[12px_12px_0px_#000]"
+              id="registration-inner-form"
+            >
+              
+              {/* Spray decal look-alike block decorations */}
+              <div className="absolute top-[-10px] left-[20px] bg-brand-magenta text-black text-[10px] font-mono px-2 py-0.5 tracking-widest uppercase font-bold">
+                3V3 REGISTRATION
               </div>
 
-              {/* Saved details rendering */}
-              <div className="border border-[#2a2a2a] bg-[#0E0E0E] p-6 mb-8 select-all">
-                <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3 mb-4">
-                  <span className="font-mono text-xs text-stone-500">JSON STATE PAYLOAD PREVIEW</span>
-                  <span className="font-mono text-[10px] bg-brand-secondary/15 text-brand-secondary px-2 py-0.5 uppercase tracking-widest font-bold">CLIENT STATE</span>
+              {/* TEAM IDENTITY MODULE */}
+              <div id="team-identity-block" className="mb-14">
+                
+                <div className="tape-label mb-8">
+                  TEAM IDENTITY
                 </div>
-                <pre className="text-xs text-brand-secondary font-mono overflow-x-auto p-2 bg-[#0A0A0A] max-h-80 border border-[#1a1a1a]">
-                  {JSON.stringify(loggedPayload, null, 2)}
+
+                {/* Grid 2 Column for Team Meta */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  
+                  {/* Team Name Input */}
+                  <div className="flex flex-col gap-2">
+                    <label className="font-urban text-brand-magenta tracking-wider text-xs uppercase font-extrabold">
+                      TEAM NAME
+                    </label>
+                    <input 
+                      type="text"
+                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.teamName ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                      value={formData.teamName}
+                      onChange={(e) => handleTeamChange("teamName", e.target.value)}
+                      placeholder="e.g. PHANTOM BALLERS"
+                      name="teamName"
+                    />
+                    <AnimatedError error={formErrors.teamName} />
+                  </div>
+
+                  {/* Team School Faculty Input */}
+                  <div className="flex flex-col gap-2">
+                    <label className="font-urban text-brand-magenta tracking-wider text-xs uppercase font-extrabold">
+                      SCHOOL/FACULTY
+                    </label>
+                    <input 
+                      type="text"
+                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.schoolFaculty ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                      value={formData.schoolFaculty}
+                      onChange={(e) => handleTeamChange("schoolFaculty", e.target.value)}
+                      placeholder="e.g. FACULTY OF COMPUTER SCIENCE"
+                      name="schoolFaculty"
+                    />
+                    <AnimatedError error={formErrors.schoolFaculty} />
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* TEAM ROSTER MODULE */}
+              <div id="roster-players-block" className="space-y-12">
+              
+              <div className="relative mb-8">
+                <div className="absolute inset-0 border-2 border-brand-green translate-x-1.5 translate-y-1.5 pointer-events-none z-0"></div>
+                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-zinc-900/90 p-4 border-l-4 border-brand-green">
+                  <span className="bg-brand-green text-black px-4 py-1 font-stencil font-bold tracking-widest text-sm transform rotate-[-1deg]">
+                    TEAM ROSTER (03 PLAYERS REQUIRED)
+                  </span>
+                  <span className="font-mono text-xs text-brand-green tracking-widest animate-pulse font-bold">
+                    STATUS: LOCKED_3V3
+                  </span>
+                </div>
+              </div>
+
+              {/* Player Iteration */}
+              {formData.players.map((player, index) => {
+                const playerNumString = player.number; // e.g. "PLAYER 01"
+                const errorPrefix = `p${index + 1}_`;
+                const isLeader = index === 0;
+
+                return (
+                  <div 
+                    key={player.id}
+                    className={`p-6 md:p-8 border-4 bg-[#0a0a0a]/90 relative overflow-hidden mb-8 shadow-[4px_4px_0px_#000] player-grid-card ${
+                      isLeader ? 'border-brand-magenta player-01-card' : 'border-zinc-850 player-other-card'
+                    }`}
+                  >
+                    
+                    {/* Aligned Large Visual Numeric Badge so users clearly spot the player number (player 03 or player 02) */}
+                    <div className="absolute right-4 top-2 select-none pointer-events-none">
+                      <span className="font-urban text-7xl md:text-9xl text-zinc-900 tracking-tighter opacity-70 block font-outline">
+                        0{index + 1}
+                      </span>
+                    </div>
+
+                    {/* Header line inside card */}
+                    <div className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-900 relative z-10">
+                      <div className="flex items-center gap-3">
+                        <span className="bg-zinc-900 border border-zinc-700 text-zinc-300 font-mono text-xs px-2.5 py-1 font-bold">
+                          {playerNumString}
+                        </span>
+                        {isLeader ? (
+                          <span className="relative inline-block bg-brand-magenta text-black font-urban text-[11px] px-3 py-1 tracking-tight italic font-black shadow-[2px_2px_0px_#000] rotate-[-1deg]">
+                            TEAM LEADER
+                          </span>
+                        ) : (
+                          <span className="relative inline-block bg-brand-green text-black font-urban text-[11px] px-3 py-1 tracking-tight uppercase font-black shadow-[2px_2px_0px_#000] rotate-[1deg]">
+                            ACTIVE ROSTER
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Inputs inside this specific player box */}
+                    {/* Stacks to single column in mobile and formats cleanly in desktop */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 font-sans">
+                      
+                      {/* Name input */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                          Student Name *
+                        </label>
+                        <input 
+                          type="text"
+                          value={player.name}
+                          onChange={(e) => handlePlayerChange(index, "name", e.target.value)}
+                          placeholder="FULL NAME"
+                          className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}name`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                        />
+                        <AnimatedError error={formErrors[`${errorPrefix}name`]} className="text-[11px] text-brand-magenta font-mono" />
+                      </div>
+
+                      {/* Matric / Student ID input */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                          Matrics Number *
+                        </label>
+                        <input 
+                          type="text"
+                          value={player.matricNo}
+                          onChange={(e) => handlePlayerChange(index, "matricNo", e.target.value)}
+                          placeholder="STUDENT ID"
+                          className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}matricNo`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                        />
+                        <AnimatedError error={formErrors[`${errorPrefix}matricNo`]} className="text-[11px] text-brand-magenta font-mono" />
+                      </div>
+
+                      {/* ID / Passport input */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                          ID/Passport Number *
+                        </label>
+                        <input 
+                          type="text"
+                          value={player.idPassport}
+                          onChange={(e) => handlePlayerChange(index, "idPassport", e.target.value)}
+                          placeholder="ID NO."
+                          className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}idPassport`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                        />
+                        <AnimatedError error={formErrors[`${errorPrefix}idPassport`]} className="text-[11px] text-brand-magenta font-mono" />
+                      </div>
+
+                      {/* School Field */}
+                      <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-1">
+                        <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                          School / Faculty *
+                        </label>
+                        <input 
+                          type="text"
+                          value={player.school}
+                          onChange={(e) => handlePlayerChange(index, "school", e.target.value)}
+                          placeholder="SCHOOL FACULTY NAME"
+                          className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}school`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                        />
+                        <AnimatedError error={formErrors[`${errorPrefix}school`]} className="text-[11px] text-brand-magenta font-mono" />
+                      </div>
+
+                      {/* Contact Number */}
+                      {isLeader && (
+                        <div className="flex flex-col gap-1.5 md:col-span-2">
+                          <label className="text-xs font-urban text-brand-green uppercase tracking-widest font-extrabold">
+                            Contact Number *
+                          </label>
+                          <input 
+                            type="text"
+                            value={player.contactNumber || ""}
+                            onChange={(e) => handlePlayerChange(0, "contactNumber", e.target.value)}
+                            placeholder="+60..."
+                            className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.p1_contactNumber ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                          />
+                          <AnimatedError error={formErrors.p1_contactNumber} className="text-[11px] text-brand-magenta font-mono" />
+                        </div>
+                      )}
+
+                    </div>
+
+                  </div>
+                );
+              })}
+
+            </div>
+
+            {/* Submitting Trigger Button */}
+            <div className="mt-14 pt-8 border-t border-zinc-900 flex flex-col sm:flex-row justify-end items-center gap-6">
+              <span className="text-xs text-zinc-500 font-mono text-center sm:text-right max-w-xs">
+                Make sure all Student IDs match real physical documents. Disqualification is absolute.
+              </span>
+              <button 
+                type="submit"
+                id="submit-roster-btn"
+                className="relative cursor-pointer w-full sm:w-auto inline-flex items-center justify-center font-urban text-lg px-10 py-5 bg-brand-green text-black border-2 border-black font-extrabold select-none shadow-[6px_6px_0px_#ff00ff] transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#ff00ff] active:translate-x-[3px] active:translate-y-[3px] active:shadow-[3px_3px_0px_#ff00ff]"
+              >
+                SUBMIT ROSTER
+              </button>
+            </div>
+
+          </form>
+          </div>
+
+          {/* SENSATIONAL SUCCESS OUTPUT BANNER (Renders program registration payload inside the screen upon click success) */}
+          {submittedData && (
+            <div 
+              id="success-panel" 
+              className="mt-12 bg-zinc-950 border-4 border-brand-green p-6 md:p-10 shadow-[10px_10px_0px_#000] scroll-mt-24"
+            >
+              <div className="flex items-center gap-4 mb-6 pb-4 border-b border-zinc-800">
+                <CheckCircle2 className="w-8 h-8 text-brand-green shrink-0" />
+                <div>
+                  <h3 className="font-urban text-xl text-brand-green tracking-tight uppercase">REGISTRATION SECURED</h3>
+                  <p className="text-zinc-400 text-xs font-mono uppercase">CS-HOOPERS SQUAD ROSTER LOGGED SUCCESSFULLY</p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-[#0A0A0A] border border-zinc-800 mb-6 rounded-none">
+                <h4 className="text-xs font-stencil mb-2 text-brand-magenta tracking-widest uppercase">REGISTRATION PAYLOAD OUTPUT</h4>
+                <pre className="text-xs text-brand-green font-mono overflow-x-auto max-h-60 p-2 whitespace-pre">
+                  {JSON.stringify(submittedData, null, 2)}
                 </pre>
               </div>
 
-              {/* Roster visual summary check */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div className="bg-[#131313] p-4 border border-[#2a2a2a]">
-                  <h4 className="font-display text-sm font-bold text-white uppercase tracking-wider mb-2">Team Parameters</h4>
-                  <div className="space-y-1 text-xs">
-                    <p><span className="text-stone-500">TEAM NAME:</span> <span className="text-[#e5e2e1] font-bold">{loggedPayload.teamName}</span></p>
-                    <p><span className="text-stone-500">UNIVERSITY:</span> <span className="text-[#e5e2e1] font-bold">{loggedPayload.school}</span></p>
-                  </div>
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#111] p-4 border-l-4 border-brand-magenta">
+                <div className="text-xs text-zinc-400 font-sans">
+                  <span className="font-bold text-white block">Next Objective:</span>
+                  Save your student IDs, keep checking your leader's inbox, and train at UTM Court A. Live brackets drop shortly.
                 </div>
-                <div className="bg-[#131313] p-4 border border-[#2a2a2a]">
-                  <h4 className="font-display text-sm font-bold text-white uppercase tracking-wider mb-2">Players Loaded</h4>
-                  <ul className="text-xs space-y-1 text-stone-300">
-                    <li>01 (Leader): <span className="text-brand-primary">{loggedPayload.players[0].studentName}</span> • Matric {loggedPayload.players[0].matricNumber}</li>
-                    <li>02: <span className="text-brand-secondary">{loggedPayload.players[1].studentName}</span> • Matric {loggedPayload.players[1].matricNumber}</li>
-                    <li>03: <span className="text-brand-secondary">{loggedPayload.players[2].studentName}</span> • Matric {loggedPayload.players[2].matricNumber}</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Reset roster option */}
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button
-                  type="button"
+                <button 
                   onClick={handleResetForm}
-                  className="bg-brand-primary text-black font-display font-black text-sm tracking-widest py-4 px-8 rounded-none border border-brand-primary hover:bg-transparent hover:text-brand-primary transition-all uppercase"
+                  className="px-5 py-2 hover:bg-zinc-900 border border-zinc-700 hover:text-white text-zinc-400 text-xs uppercase font-urban shrink-0 transition-colors"
                 >
-                  REGISTER A NEW SQUAD
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('faq', 'faq')}
-                  className="bg-stone-800 text-white font-display font-black text-sm tracking-widest py-4 px-8 rounded-none border border-stone-700 hover:bg-transparent hover:text-white hover:border-white transition-all uppercase"
-                >
-                  VIEW RULES & FAQ
+                  Register Another Team
                 </button>
               </div>
             </div>
-
-          ) : (
-
-            // Registration Form
-            <form onSubmit={handleSubmit} className="max-w-4xl mx-auto bg-[#131313] border border-[#2A2A2A] rounded-none p-6 md:p-10 relative">
-              
-              {/* Decorative side outline bars for technical feel */}
-              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-brand-primary"></div>
-
-              {/* Section 1: Team Identity */}
-              <div className="mb-10">
-                <div className="flex items-center gap-3 border-b border-[#2A2A2A] pb-3 mb-6">
-                  <School className="w-5 h-5 text-brand-primary" />
-                  <h3 className="font-display text-lg font-bold text-white uppercase tracking-wider">
-                    TEAM IDENTITY
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  
-                  {/* Team Name Input */}
-                  <div>
-                    <label className="block text-[11px] font-mono tracking-widest text-[#aa897f] uppercase mb-2">
-                      TEAM NAME <span className="text-brand-primary">*</span>
-                    </label>
-                    <input 
-                      type="text"
-                      value={teamName}
-                      onChange={(e) => {
-                        setTeamName(e.target.value);
-                        if (errors.teamName) setErrors(prev => {
-                          const copy = { ...prev };
-                          delete copy.teamName;
-                          return copy;
-                        });
-                      }}
-                      placeholder="e.g. Neon Knights"
-                      className={`w-full bg-[#1C1B1B] text-white border-b-2 ${
-                        errors.teamName ? 'border-red-500 bg-red-950/20' : 'border-[#2A2A2A]'
-                      } focus:border-brand-secondary outline-none py-3 px-4 font-sans text-sm tracking-wide rounded-none transition-all placeholder:text-[#525252] focus:bg-[#201F1F]`}
-                    />
-                    {errors.teamName && (
-                      <p className="text-red-400 font-mono text-[10px] uppercase mt-1.5 flex items-center gap-1.5">
-                        <Info className="w-3.5 h-3.5" /> {errors.teamName}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* School/Pusat Pengajian Input */}
-                  <div>
-                    <label className="block text-[11px] font-mono tracking-widest text-[#aa897f] uppercase mb-2">
-                      SCHOOL/PUSAT PENGAJIAN <span className="text-brand-primary">*</span>
-                    </label>
-                    <input 
-                      type="text"
-                      value={school}
-                      onChange={(e) => {
-                        setSchool(e.target.value);
-                        if (errors.school) setErrors(prev => {
-                          const copy = { ...prev };
-                          delete copy.school;
-                          return copy;
-                        });
-                      }}
-                      placeholder="e.g. Faculty of Computer Science"
-                      className={`w-full bg-[#1C1B1B] text-white border-b-2 ${
-                        errors.school ? 'border-red-500 bg-red-950/20' : 'border-[#2A2A2A]'
-                      } focus:border-brand-secondary outline-none py-3 px-4 font-sans text-sm tracking-wide rounded-none transition-all placeholder:text-[#525252] focus:bg-[#201F1F]`}
-                    />
-                    {errors.school && (
-                      <p className="text-red-400 font-mono text-[10px] uppercase mt-1.5 flex items-center gap-1.5">
-                        <Info className="w-3.5 h-3.5" /> {errors.school}
-                      </p>
-                    )}
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Section 2: Team Roster Heading */}
-              <div className="mb-8">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#2A2A2A] pb-3 mb-6">
-                  <div className="flex items-center gap-3">
-                    <Users className="w-5 h-5 text-brand-primary" />
-                    <h3 className="font-display text-lg font-bold text-white uppercase tracking-wider">
-                      TEAM ROSTER (3 MEMBERS EXACTLY)
-                    </h3>
-                  </div>
-                  <div>
-                    <span className="inline-flex items-center gap-1.5 font-mono text-[10px] bg-brand-secondary/10 px-3 py-1 text-brand-secondary uppercase tracking-wider font-extrabold border border-brand-secondary/20">
-                      <span className="w-1.5 h-1.5 bg-brand-secondary rounded-full"></span>
-                      03 PLAYERS (FIXED)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-8">
-                  
-                  {/* Player 01 (Team Leader) Block */}
-                  <div className="bg-[#1C1B1B] border border-brand-primary/30 p-6 relative group">
-                    <div className="absolute top-0 right-0 bg-brand-primary/10 border-l border-b border-brand-primary/30 px-3 py-1 font-mono text-[9px] text-brand-primary uppercase tracking-widest font-black">
-                      PRIMARY CONTACT
-                    </div>
-
-                    <div className="flex items-center gap-4 mb-6">
-                      <span className="font-display text-4xl md:text-5xl font-black text-stone-700 leading-none">01</span>
-                      <div className="bg-brand-primary text-black font-display font-black text-[10px] tracking-widest px-2.5 py-0.5 uppercase">
-                        TEAM LEADER
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      
-                      {/* Name input */}
-                      <div>
-                        <label className="block text-[10px] font-mono tracking-widest text-[#aa897f] uppercase mb-1.5">
-                          STUDENT NAME <span className="text-brand-primary">*</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={players[0].studentName}
-                          onChange={(e) => handlePlayer01Change('studentName', e.target.value)}
-                          placeholder="Full Name"
-                          className={`w-full bg-[#131313] text-white border-b ${
-                            errors['player01-studentName'] ? 'border-red-500 bg-red-950/10' : 'border-[#2A2A2A]'
-                          } focus:border-brand-primary outline-none py-2 px-3 text-xs md:text-sm font-sans rounded-none transition-all placeholder:text-[#444]`}
-                        />
-                        {errors['player01-studentName'] && (
-                          <p className="text-red-400 font-mono text-[9px] uppercase mt-1">
-                            {errors['player01-studentName']}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Matric Number */}
-                      <div>
-                        <label className="block text-[10px] font-mono tracking-widest text-[#aa897f] uppercase mb-1.5">
-                          MATRICS NUMBER <span className="text-brand-primary">*</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={players[0].matricNumber}
-                          onChange={(e) => handlePlayer01Change('matricNumber', e.target.value)}
-                          placeholder="Student ID"
-                          className={`w-full bg-[#131313] text-white border-b ${
-                            errors['player01-matricNumber'] ? 'border-red-500 bg-red-950/10' : 'border-[#2A2A2A]'
-                          } focus:border-brand-primary outline-none py-2 px-3 text-xs md:text-sm font-sans rounded-none transition-all placeholder:text-[#444]`}
-                        />
-                        {errors['player01-matricNumber'] && (
-                          <p className="text-red-400 font-mono text-[9px] uppercase mt-1">
-                            {errors['player01-matricNumber']}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* ID/Passport Number */}
-                      <div>
-                        <label className="block text-[10px] font-mono tracking-widest text-[#aa897f] uppercase mb-1.5">
-                          IDENTIFICATION/PASSPORT NUMBER <span className="text-brand-primary">*</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={players[0].idPassportNumber}
-                          onChange={(e) => handlePlayer01Change('idPassportNumber', e.target.value)}
-                          placeholder="ID/Passport"
-                          className={`w-full bg-[#131313] text-white border-b ${
-                            errors['player01-idPassportNumber'] ? 'border-red-500 bg-red-950/10' : 'border-[#2A2A2A]'
-                          } focus:border-brand-primary outline-none py-2 px-3 text-xs md:text-sm font-sans rounded-none transition-all placeholder:text-[#444]`}
-                        />
-                        {errors['player01-idPassportNumber'] && (
-                          <p className="text-red-400 font-mono text-[9px] uppercase mt-1">
-                            {errors['player01-idPassportNumber']}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Contact Number (CRITICAL ONLY FOR PLAYER 01) */}
-                      <div>
-                        <label className="block text-[10px] font-mono tracking-widest text-brand-primary uppercase mb-1.5">
-                          CONTACT NUMBER (TEAM LEADER) <span className="text-brand-primary">*</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={players[0].contactNumber}
-                          onChange={(e) => handlePlayer01Change('contactNumber', e.target.value)}
-                          placeholder="Phone Number"
-                          className={`w-full bg-[#131313] text-white border-b font-mono ${
-                            errors['player01-contactNumber'] ? 'border-red-500 bg-red-950/10' : 'border-[#2A2A2A]'
-                          } focus:border-brand-primary outline-none py-2 px-3 text-xs md:text-sm rounded-none transition-all placeholder:text-[#444]`}
-                        />
-                        {errors['player01-contactNumber'] && (
-                          <p className="text-red-400 font-mono text-[9px] uppercase mt-1">
-                            {errors['player01-contactNumber']}
-                          </p>
-                        )}
-                      </div>
-
-                    </div>
-                  </div>
-
-                  {/* Player 02 Block */}
-                  <div className="bg-[#1C1B1B] border border-[#2A2A2A] hover:border-brand-secondary/40 p-6 relative group transition-all duration-300">
-                    
-                    <div className="flex items-center gap-4 mb-6">
-                      <span className="font-display text-4xl md:text-5xl font-black text-stone-700 leading-none">02</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      
-                      {/* Name input */}
-                      <div>
-                        <label className="block text-[10px] font-mono tracking-widest text-[#aa897f] uppercase mb-1.5">
-                          STUDENT NAME <span className="text-brand-primary">*</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={players[1].studentName}
-                          onChange={(e) => handlePlayerStandardChange(1, 'studentName', e.target.value)}
-                          placeholder="Full Name"
-                          className={`w-full bg-[#131313] text-white border-b ${
-                            errors['player02-studentName'] ? 'border-red-500 bg-red-950/10' : 'border-[#2A2A2A]'
-                          } focus:border-brand-secondary outline-none py-2 px-3 text-xs md:text-sm font-sans rounded-none transition-all placeholder:text-[#444]`}
-                        />
-                        {errors['player02-studentName'] && (
-                          <p className="text-red-400 font-mono text-[9px] uppercase mt-1">
-                            {errors['player02-studentName']}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Matric Number */}
-                      <div>
-                        <label className="block text-[10px] font-mono tracking-widest text-[#aa897f] uppercase mb-1.5">
-                          MATRICS NUMBER <span className="text-brand-primary">*</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={players[1].matricNumber}
-                          onChange={(e) => handlePlayerStandardChange(1, 'matricNumber', e.target.value)}
-                          placeholder="Student ID"
-                          className={`w-full bg-[#131313] text-white border-b ${
-                            errors['player02-matricNumber'] ? 'border-red-500 bg-red-950/10' : 'border-[#2A2A2A]'
-                          } focus:border-brand-secondary outline-none py-2 px-3 text-xs md:text-sm font-sans rounded-none transition-all placeholder:text-[#444]`}
-                        />
-                        {errors['player02-matricNumber'] && (
-                          <p className="text-red-400 font-mono text-[9px] uppercase mt-1">
-                            {errors['player02-matricNumber']}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* ID/Passport Number */}
-                      <div>
-                        <label className="block text-[10px] font-mono tracking-widest text-[#aa897f] uppercase mb-1.5">
-                          IDENTIFICATION/PASSPORT NUMBER <span className="text-brand-primary">*</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={players[1].idPassportNumber}
-                          onChange={(e) => handlePlayerStandardChange(1, 'idPassportNumber', e.target.value)}
-                          placeholder="ID/Passport"
-                          className={`w-full bg-[#131313] text-white border-b ${
-                            errors['player02-idPassportNumber'] ? 'border-red-500 bg-red-950/10' : 'border-[#2A2A2A]'
-                          } focus:border-brand-secondary outline-none py-2 px-3 text-xs md:text-sm font-sans rounded-none transition-all placeholder:text-[#444]`}
-                        />
-                        {errors['player02-idPassportNumber'] && (
-                          <p className="text-red-400 font-mono text-[9px] uppercase mt-1">
-                            {errors['player02-idPassportNumber']}
-                          </p>
-                        )}
-                      </div>
-
-                    </div>
-                  </div>
-
-                  {/* Player 03 Block */}
-                  <div className="bg-[#1C1B1B] border border-[#2A2A2A] hover:border-brand-secondary/40 p-6 relative group transition-all duration-300">
-                    
-                    <div className="flex items-center gap-4 mb-6">
-                      <span className="font-display text-4xl md:text-5xl font-black text-stone-700 leading-none">03</span>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      
-                      {/* Name input */}
-                      <div>
-                        <label className="block text-[10px] font-mono tracking-widest text-[#aa897f] uppercase mb-1.5">
-                          STUDENT NAME <span className="text-brand-primary">*</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={players[2].studentName}
-                          onChange={(e) => handlePlayerStandardChange(2, 'studentName', e.target.value)}
-                          placeholder="Full Name"
-                          className={`w-full bg-[#131313] text-white border-b ${
-                            errors['player03-studentName'] ? 'border-red-500 bg-red-950/10' : 'border-[#2A2A2A]'
-                          } focus:border-brand-secondary outline-none py-2 px-3 text-xs md:text-sm font-sans rounded-none transition-all placeholder:text-[#444]`}
-                        />
-                        {errors['player03-studentName'] && (
-                          <p className="text-red-400 font-mono text-[9px] uppercase mt-1">
-                            {errors['player03-studentName']}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Matric Number */}
-                      <div>
-                        <label className="block text-[10px] font-mono tracking-widest text-[#aa897f] uppercase mb-1.5">
-                          MATRICS NUMBER <span className="text-brand-primary">*</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={players[2].matricNumber}
-                          onChange={(e) => handlePlayerStandardChange(2, 'matricNumber', e.target.value)}
-                          placeholder="Student ID"
-                          className={`w-full bg-[#131313] text-white border-b ${
-                            errors['player03-matricNumber'] ? 'border-red-500 bg-red-950/10' : 'border-[#2A2A2A]'
-                          } focus:border-brand-secondary outline-none py-2 px-3 text-xs md:text-sm font-sans rounded-none transition-all placeholder:text-[#444]`}
-                        />
-                        {errors['player03-matricNumber'] && (
-                          <p className="text-red-400 font-mono text-[9px] uppercase mt-1">
-                            {errors['player03-matricNumber']}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* ID/Passport Number */}
-                      <div>
-                        <label className="block text-[10px] font-mono tracking-widest text-[#aa897f] uppercase mb-1.5">
-                          IDENTIFICATION/PASSPORT NUMBER <span className="text-brand-primary">*</span>
-                        </label>
-                        <input 
-                          type="text"
-                          value={players[2].idPassportNumber}
-                          onChange={(e) => handlePlayerStandardChange(2, 'idPassportNumber', e.target.value)}
-                          placeholder="ID/Passport"
-                          className={`w-full bg-[#131313] text-white border-b ${
-                            errors['player03-idPassportNumber'] ? 'border-red-500 bg-red-950/10' : 'border-[#2A2A2A]'
-                          } focus:border-brand-secondary outline-none py-2 px-3 text-xs md:text-sm font-sans rounded-none transition-all placeholder:text-[#444]`}
-                        />
-                        {errors['player03-idPassportNumber'] && (
-                          <p className="text-red-400 font-mono text-[9px] uppercase mt-1">
-                            {errors['player03-idPassportNumber']}
-                          </p>
-                        )}
-                      </div>
-
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Submitting Feedback errors summary at bottom if has errors */}
-              {Object.keys(errors).length > 0 && (
-                <div className="bg-red-500/10 border border-red-500 text-red-200 p-4 mb-6 text-xs font-mono uppercase tracking-wide flex items-start gap-3">
-                  <span className="bg-red-500 text-black px-1.5 py-0.5 font-bold font-mono">ERROR</span>
-                  <div>
-                    <p className="font-bold">Roster rejected. Please correct the highlighted errors above:</p>
-                    <ul className="list-disc list-inside mt-2 text-[10px] space-y-1 text-red-300">
-                      <li>Check team parameters are complete.</li>
-                      <li>Ensured all 3 players have valid student names, student IDs, and ID cards.</li>
-                      <li>Team Leader must supply contact number.</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-
-              {/* Submit Button Block */}
-              <div className="flex justify-end border-t border-[#2A2A2A] pt-8">
-                <button
-                  type="submit"
-                  className="bg-brand-primary text-black font-display font-black text-sm md:text-base tracking-widest py-4 px-10 rounded-none border border-brand-primary hover:bg-transparent hover:text-brand-primary transition-all duration-300 transform active:scale-95 flex items-center gap-3 cursor-pointer"
-                >
-                  SUBMIT ROSTER <Send className="w-4 h-4" />
-                </button>
-              </div>
-
-            </form>
           )}
 
         </div>
       </section>
 
-      {/* FAQ SECTION */}
-      <section id="faq" className="py-24 border-b border-[#2A2A2A] bg-brand-surface-dim relative">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-16">
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            
-            {/* Left label part */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-28">
-                <div className="border-l-4 border-brand-primary pl-4">
-                  <h2 className="font-display text-4xl md:text-5xl font-black text-[#e5e2e1] uppercase tracking-tight">
-                    FAQ
-                  </h2>
-                </div>
-                <p className="text-[#c8c6c5] text-sm mt-4 font-sans leading-relaxed max-w-xs">
-                  Everything you and your team need to know about eligibility, uniform policies, and game times.
-                </p>
-                <div className="mt-8 border border-[#2a2a2a] bg-stone-900/40 p-5 rounded-none text-xs text-stone-400">
-                  <p className="font-bold text-stone-200 mb-2 uppercase tracking-wider font-mono">Support Court</p>
-                  <p>Have special matric card issues or registration inquiries?</p>
-                  <a href="mailto:support@varsityarena.edu" className="text-brand-primary block mt-2 hover:underline font-mono">support@varsityarena.com</a>
+      {/* ROAD STREET FAQ SECTION (Interactive pure React collapsible state driven) */}
+      <section 
+        id="faq-section" 
+        className="py-24 px-4 md:px-8 bg-[#0A0A0A] relative z-20 max-w-4xl mx-auto"
+      >
+        <div className="mb-14 relative inline-block">
+          <h2 className="font-urban text-4xl text-white uppercase italic tracking-tighter">
+            STREET <span className="text-brand-green">FAQ</span>
+          </h2>
+          <div className="h-2 w-full bg-brand-green mt-2"></div>
+        </div>
+
+        <div className="space-y-6">
+          {faqs.map((faq, idx) => {
+            const isOpen = activeFaq === idx;
+            return (
+              <div 
+                key={idx}
+                className="bg-[#111111] border-4 border-zinc-800 transition-all hover:border-zinc-700"
+              >
+                {/* Accordion Trigger */}
+                <button 
+                  onClick={() => setActiveFaq(isOpen ? null : idx)}
+                  className="w-full text-left flex justify-between items-center p-6 cursor-pointer font-marker text-lg md:text-xl text-white hover:text-brand-green transition-colors focus:outline-none"
+                >
+                  <span>{faq.question}</span>
+                  <ChevronDown 
+                    className={`w-6 h-6 text-brand-magenta transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
+                  />
+                </button>
+
+                {/* Accordion Content */}
+                <div 
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-56 border-t border-zinc-900 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}
+                >
+                  <div className="p-6 text-sm md:text-base text-zinc-300 leading-relaxed font-sans font-medium">
+                    {faq.answer}
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Right Accordion Questions */}
-            <div className="lg:col-span-2 space-y-4">
-              {faqData.map((faq, idx) => {
-                const isOpened = openFaq === idx;
-                return (
-                  <div 
-                    key={idx}
-                    className="border border-[#2a2a2a] bg-[#131313] transition-all duration-300"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setOpenFaq(isOpened ? null : idx)}
-                      className="w-full text-left py-6 px-6 flex items-center justify-between font-display text-base md:text-lg font-bold uppercase tracking-wide text-white focus:outline-none focus:text-brand-primary"
-                    >
-                      <span>{faq.question}</span>
-                      {isOpened ? (
-                        <ChevronUp className="w-5 h-5 text-brand-primary" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-stone-500" />
-                      )}
-                    </button>
-                    
-                    {/* Collapsible Answer */}
-                    <div 
-                      className={`overflow-hidden transition-all duration-300 ${
-                        isOpened ? 'max-h-52 border-t border-[#2a2a2a] p-6' : 'max-h-0'
-                      }`}
-                    >
-                      <p className="font-sans text-[#c8c6c5] text-sm md:text-base leading-relaxed">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-          </div>
-
+            );
+          })}
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-brand-bg border-t border-[#2A2A2A] py-16 text-stone-400 text-xs font-sans">
-        <div className="max-w-[1280px] mx-auto px-4 md:px-16">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            
-            {/* Info */}
-            <div className="md:col-span-2">
-              <span className="font-display text-2xl font-black text-white tracking-widest uppercase">
-                VARSITY<span className="text-brand-primary font-black">ARENA</span>
-              </span>
-              <p className="mt-4 text-[#c8c6c5] max-w-sm leading-relaxed">
-                Empowering college athletes with high-intensity tournament spaces and technical analytics instrumentation. Register your team to claim prestige.
-              </p>
-            </div>
-
-            {/* Links */}
-            <div>
-              <h4 className="font-display text-sm font-bold text-stone-300 uppercase tracking-wider mb-4">TOURNAMENT LEGAL</h4>
-              <ul className="space-y-2 font-mono text-[10px]">
-                <li><a href="#introduction" className="hover:text-brand-primary transition-all">PRIVACY POLICY</a></li>
-                <li><a href="#introduction" className="hover:text-brand-primary transition-all">TERMS OF SERVICE</a></li>
-                <li><a href="#introduction" className="hover:text-brand-primary transition-all">TOURNAMENT RULES</a></li>
-                <li><a href="#introduction" className="hover:text-brand-primary transition-all">CONTACT SUPPORT</a></li>
-              </ul>
-            </div>
-
-            {/* Contact Info */}
-            <div>
-              <h4 className="font-display text-sm font-bold text-stone-300 uppercase tracking-wider mb-4">ARENA ADDRESS</h4>
-              <p className="leading-relaxed font-sans text-stone-400">
-                Main Campus Varsity Gymnasium Complex<br />
-                Arena Avenue Block 10A<br />
-                Technical Education Quarter
-              </p>
-            </div>
-
-          </div>
-
-          <div className="border-t border-[#2A2A2A] pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-stone-500">
-              © 2026 VARSITY ARENA. TECHNICAL EXCELLENCE IN COLLEGIATE ATHLETICS.
+      <footer className="bg-[#111111] border-t-8 border-brand-green py-16 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center gap-10">
+          
+          <div className="text-center md:text-left">
+            <h2 className="font-urban text-2xl text-white italic tracking-tighter uppercase">
+              VARSITY <span className="text-brand-magenta">ARENA</span>
+            </h2>
+            <p className="text-xs text-zinc-500 font-mono tracking-widest uppercase mt-2">
+              Championship system platform
             </p>
-            
-            <div className="flex items-center gap-1.5 font-mono text-[10px]">
-              <span className="text-stone-500 uppercase">SYSTEM POWER:</span>
-              <span className="bg-[#1C1B1B] text-brand-secondary px-2 py-0.5 border border-[#2a2a2a]">KINETIC PRECISION v4</span>
-            </div>
           </div>
+
+          <div className="flex flex-wrap justify-center gap-6">
+            <a href="#" className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors">Privacy</a>
+            <a href="#" className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors">Terms</a>
+            <a href="#" className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors">Rules</a>
+            <a href="#" className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors">Support</a>
+          </div>
+
+          <div className="font-stencil text-xs text-zinc-500 tracking-widest text-center md:text-right">
+            © 2026 VARSITY ARENA.<br />
+            <span className="text-brand-green tracking-wide block font-urban text-[10px] mt-1">
+              RAW. GRITTY. TECHNICAL.
+            </span>
+          </div>
+
         </div>
       </footer>
 
