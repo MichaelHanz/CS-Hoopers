@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { 
-  Calendar, 
-  MapPin, 
-  Trophy, 
-  ChevronDown, 
-  CheckCircle2, 
+import {
+  Calendar,
+  MapPin,
+  Trophy,
+  ChevronDown,
+  CheckCircle2,
   AlertTriangle,
   Flame,
 } from "lucide-react";
@@ -28,7 +28,13 @@ interface TeamRegistration {
   players: [Player, Player, Player];
 }
 
-const AnimatedError = ({ error, className = "text-xs text-brand-magenta font-mono" }: { error?: string; className?: string }) => {
+const AnimatedError = ({
+  error,
+  className = "text-xs text-brand-magenta font-mono",
+}: {
+  error?: string;
+  className?: string;
+}) => {
   return (
     <AnimatePresence initial={false}>
       {error ? (
@@ -64,7 +70,7 @@ const HeroSection = React.memo(function HeroSection() {
     relY: 0,
     dist: 0,
     jitterX: 0,
-    jitterY: 0
+    jitterY: 0,
   });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
@@ -107,7 +113,7 @@ const HeroSection = React.memo(function HeroSection() {
     };
 
     if (followerRef.current) {
-      followerRef.current.style.opacity = '1';
+      followerRef.current.style.opacity = "1";
     }
   };
 
@@ -119,9 +125,9 @@ const HeroSection = React.memo(function HeroSection() {
     state.current.isHovered = false;
     state.current.jitterX = 0;
     state.current.jitterY = 0;
-    
+
     if (followerRef.current) {
-      followerRef.current.style.opacity = '0';
+      followerRef.current.style.opacity = "0";
     }
     if (heroTitleRef.current) {
       heroTitleRef.current.style.transform = `translate(0px, 0px)`;
@@ -138,7 +144,7 @@ const HeroSection = React.memo(function HeroSection() {
 
     const tick = () => {
       const s = state.current;
-      
+
       if (s.isHovered) {
         s.velocity *= 0.92;
         const vel = s.velocity;
@@ -152,9 +158,18 @@ const HeroSection = React.memo(function HeroSection() {
         }
 
         if (containerRef.current) {
-          containerRef.current.style.setProperty("--mouse-rel-x", s.relX.toString());
-          containerRef.current.style.setProperty("--mouse-rel-y", s.relY.toString());
-          containerRef.current.style.setProperty("--mouse-dist", s.dist.toString());
+          containerRef.current.style.setProperty(
+            "--mouse-rel-x",
+            s.relX.toString(),
+          );
+          containerRef.current.style.setProperty(
+            "--mouse-rel-y",
+            s.relY.toString(),
+          );
+          containerRef.current.style.setProperty(
+            "--mouse-dist",
+            s.dist.toString(),
+          );
         }
 
         if (heroTitleRef.current) {
@@ -167,10 +182,11 @@ const HeroSection = React.memo(function HeroSection() {
           const size = 140 + vel * 45;
           followerRef.current.style.width = `${size}px`;
           followerRef.current.style.height = `${size}px`;
-          
-          glowRef.current.style.background = vel > 1.2
-            ? 'radial-gradient(circle, rgba(255,0,255,0.22) 0%, rgba(0,255,255,0.18) 72%)'
-            : 'radial-gradient(circle, rgba(0,255,255,0.25) 0%, rgba(255,0,255,0.15) 70%)';
+
+          glowRef.current.style.background =
+            vel > 1.2
+              ? "radial-gradient(circle, rgba(255,0,255,0.22) 0%, rgba(0,255,255,0.18) 72%)"
+              : "radial-gradient(circle, rgba(0,255,255,0.25) 0%, rgba(255,0,255,0.15) 70%)";
         }
       }
 
@@ -195,8 +211,9 @@ const HeroSection = React.memo(function HeroSection() {
         className="absolute pointer-events-none z-30 mix-blend-screen overflow-hidden"
         style={{
           opacity: 0,
-          transform: 'translate(-50%, -50%)',
-          transition: 'width 0.08s ease-out, height 0.08s ease-out, opacity 0.2s ease',
+          transform: "translate(-50%, -50%)",
+          transition:
+            "width 0.08s ease-out, height 0.08s ease-out, opacity 0.2s ease",
         }}
       >
         <div
@@ -205,9 +222,14 @@ const HeroSection = React.memo(function HeroSection() {
         />
       </div>
 
-      <div id="intro-status" className="inline-flex items-center gap-2 px-5 py-2 bg-black border-2 border-brand-green mb-8 rotate-[-1deg] hover:rotate-1 transition-transform pointer-events-none">
+      <div
+        id="intro-status"
+        className="inline-flex items-center gap-2 px-5 py-2 bg-black border-2 border-brand-green mb-8 rotate-[-1deg] hover:rotate-1 transition-transform pointer-events-none"
+      >
         <span className="w-3 h-3 rounded-full bg-brand-green animate-ping"></span>
-        <span className="font-stencil text-brand-green text-sm md:text-base tracking-widest">REGISTRATIONS OPEN</span>
+        <span className="font-stencil text-brand-green text-sm md:text-base tracking-widest">
+          REGISTRATIONS OPEN
+        </span>
       </div>
 
       <div className="text-center w-full max-w-5xl mb-12 relative z-20 px-2">
@@ -216,7 +238,7 @@ const HeroSection = React.memo(function HeroSection() {
           ref={heroTitleRef}
           className="font-syne font-extrabold leading-none tracking-tighter italic cursor-default select-none uppercase"
           style={{
-            transition: 'transform 0.05s ease-out'
+            transition: "transform 0.05s ease-out",
           }}
         >
           <span
@@ -239,7 +261,9 @@ const HeroSection = React.memo(function HeroSection() {
 
       <div className="max-w-2xl text-center bg-zinc-950/90 p-6 md:p-8 border-l-4 border-brand-magenta mb-16 shadow-[8px_8px_0px_#111]">
         <p className="font-sans text-base md:text-lg text-zinc-300 leading-relaxed">
-          The premier collegiate basketball tournament where data meets the asphalt. Assemble your squad, register your roster, and prepare for high-stakes urban competition.
+          The premier collegiate basketball tournament where data meets the
+          asphalt. Assemble your squad, register your roster, and prepare for
+          high-stakes urban competition.
         </p>
       </div>
 
@@ -251,11 +275,15 @@ const HeroSection = React.memo(function HeroSection() {
           <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-magenta flex items-center justify-center mb-4">
             <Calendar className="w-6 h-6 text-brand-magenta" />
           </div>
-          <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">DATES</h3>
+          <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">
+            DATES
+          </h3>
           <p className="stencil-text text-xl md:text-2xl text-brand-green font-bold">
-            OCT 15 - 20, 2024
+            JUNE 13, 2026
           </p>
-          <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">Live Schedule</span>
+          <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">
+            D-DAY
+          </span>
         </div>
 
         <div
@@ -265,11 +293,15 @@ const HeroSection = React.memo(function HeroSection() {
           <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-green flex items-center justify-center mb-4">
             <MapPin className="w-6 h-6 text-brand-green" />
           </div>
-          <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">VENUE</h3>
+          <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">
+            VENUE
+          </h3>
           <p className="stencil-text text-xl md:text-2xl text-brand-magenta font-bold">
-            MAIN VARSITY ARENA
+            BAKTI FAJAR PERMAI
           </p>
-          <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">UTM COURT A</span>
+          <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">
+            BASKETBALL COURT
+          </span>
         </div>
 
         <div
@@ -279,11 +311,15 @@ const HeroSection = React.memo(function HeroSection() {
           <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-magenta flex items-center justify-center mb-4">
             <Trophy className="w-6 h-6 text-brand-magenta" />
           </div>
-          <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">PRIZE</h3>
+          <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">
+            PRIZE
+          </h3>
           <p className="stencil-text text-xl md:text-2xl text-brand-green font-bold">
-            $5,000 + RINGS
+            TO BE ANNOUNCED
           </p>
-          <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">Championship Pack</span>
+          <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">
+            💔🙏
+          </span>
         </div>
       </div>
     </section>
@@ -308,7 +344,7 @@ export default function App() {
         matricNo: "",
         idPassport: "",
         school: "",
-        contactNumber: ""
+        contactNumber: "",
       },
       {
         id: "p2",
@@ -317,7 +353,7 @@ export default function App() {
         name: "",
         matricNo: "",
         idPassport: "",
-        school: ""
+        school: "",
       },
       {
         id: "p3",
@@ -326,9 +362,9 @@ export default function App() {
         name: "",
         matricNo: "",
         idPassport: "",
-        school: ""
-      }
-    ]
+        school: "",
+      },
+    ],
   });
 
   // Simple accordion state for FAQ
@@ -336,19 +372,24 @@ export default function App() {
 
   // Form error notification state
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  
+
   // Submit success state
-  const [submittedData, setSubmittedData] = useState<TeamRegistration | null>(null);
+  const [submittedData, setSubmittedData] = useState<TeamRegistration | null>(
+    null,
+  );
 
   // Input change handler for top level team details
-  const handleTeamChange = (field: "teamName" | "schoolFaculty", value: string) => {
-    setFormData(prev => ({
+  const handleTeamChange = (
+    field: "teamName" | "schoolFaculty",
+    value: string,
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
     // Clear field error on change
     if (formErrors[field]) {
-      setFormErrors(prev => {
+      setFormErrors((prev) => {
         const next = { ...prev };
         delete next[field];
         return next;
@@ -357,23 +398,27 @@ export default function App() {
   };
 
   // Change handler for player inputs
-  const handlePlayerChange = (playerIndex: number, field: keyof Player, value: string) => {
-    setFormData(prev => {
+  const handlePlayerChange = (
+    playerIndex: number,
+    field: keyof Player,
+    value: string,
+  ) => {
+    setFormData((prev) => {
       const updatedPlayers = [...prev.players] as [Player, Player, Player];
       updatedPlayers[playerIndex] = {
         ...updatedPlayers[playerIndex],
-        [field]: value
+        [field]: value,
       };
       return {
         ...prev,
-        players: updatedPlayers
+        players: updatedPlayers,
       };
     });
 
     // Clear specific field errors
     const errorKey = `p${playerIndex + 1}_${field}`;
     if (formErrors[errorKey]) {
-      setFormErrors(prev => {
+      setFormErrors((prev) => {
         const next = { ...prev };
         delete next[errorKey];
         return next;
@@ -403,13 +448,10 @@ export default function App() {
       if (!player.matricNo.trim()) {
         errors[`p${i}_matricNo`] = `Player 0${i} Metric/Student ID is required`;
       }
-      if (!player.idPassport.trim()) {
-        errors[`p${i}_idPassport`] = `Player 0${i} ID/Passport is required`;
-      }
       if (!player.school.trim()) {
         errors[`p${i}_school`] = `Player 0${i} School is required`;
       }
-      
+
       // Player 01 validation for Contact
       if (idx === 0) {
         if (!player.contactNumber || !player.contactNumber.trim()) {
@@ -429,7 +471,10 @@ export default function App() {
     }
 
     // Success payload
-    console.log("SUCCESSFUL REGISTRATION PAYLOAD:", JSON.stringify(formData, null, 2));
+    console.log(
+      "SUCCESSFUL REGISTRATION PAYLOAD:",
+      JSON.stringify(formData, null, 2),
+    );
     setFormErrors({});
     setSubmittedData(formData);
 
@@ -455,7 +500,7 @@ export default function App() {
           matricNo: "",
           idPassport: "",
           school: "",
-          contactNumber: ""
+          contactNumber: "",
         },
         {
           id: "p2",
@@ -464,7 +509,7 @@ export default function App() {
           name: "",
           matricNo: "",
           idPassport: "",
-          school: ""
+          school: "",
         },
         {
           id: "p3",
@@ -473,9 +518,9 @@ export default function App() {
           name: "",
           matricNo: "",
           idPassport: "",
-          school: ""
-        }
-      ]
+          school: "",
+        },
+      ],
     });
     setSubmittedData(null);
     setFormErrors({});
@@ -485,16 +530,19 @@ export default function App() {
   const faqs = [
     {
       question: "ELIGIBILITY RULES?",
-      answer: "Valid university or college students only. All registered athletes must bring their physical active Student ID to the venue on tournament days. No ID, no entry onto the court. Strict academic verification applies."
+      answer:
+        "Valid university or college students only. All registered athletes must bring their physical active Student ID to the venue on tournament days. No ID, no entry onto the court. Strict academic verification applies.",
     },
     {
       question: "UNIFORM CODE?",
-      answer: "Teams must sport matching color jerseys. High-contrast numbers must be permanently visible on either the front or the back of the active tops. We strongly suggest rugged, gritty sportswear built to survive real street play."
+      answer:
+        "Teams must sport matching color jerseys. High-contrast numbers must be permanently visible on either the front or the back of the active tops. We strongly suggest rugged, gritty sportswear built to survive real street play.",
     },
     {
       question: "GAME SCHEDULE?",
-      answer: "Full elimination brackets will drop exactly 48 hours after user registration windows officially lock. Standard tournament slots are rigid with zero rescheduling options. Check-in is precisely 30 minutes before your tip-off."
-    }
+      answer:
+        "Full elimination brackets will drop exactly 48 hours after user registration windows officially lock. Standard tournament slots are rigid with zero rescheduling options. Check-in is precisely 30 minutes before your tip-off.",
+    },
   ];
 
   useEffect(() => {
@@ -508,7 +556,7 @@ export default function App() {
       {
         root: null,
         threshold: 0.15,
-      }
+      },
     );
 
     observer.observe(section);
@@ -528,56 +576,80 @@ export default function App() {
     });
     return count;
   };
-  
-  const completedFields = calculateCompletedFields();
-  const isFormComplete = completedFields === 15;
 
+  const completedFields = calculateCompletedFields();
+  const isFormComplete = completedFields === 12;
   return (
-    <div id="app-root" className="bg-[#0A0A0A] text-white min-h-screen font-sans selection:bg-brand-green selection:text-black antialiased relative overflow-x-hidden">
-      
+    <div
+      id="app-root"
+      className="bg-[#0A0A0A] text-white min-h-screen font-sans selection:bg-brand-green selection:text-black antialiased relative overflow-x-hidden"
+    >
       {/* Gritty Street Overlays and Side Murals for exact visual similarity */}
       <div className="halftone-overlay pointer-events-none"></div>
       <div className="visual-noise pointer-events-none"></div>
 
       {/* Floating Street Spray Graffiti tags on desktop for visual energy */}
-      <div className="hidden xl:block graffiti-tag top-[14%] left-[10%] rotate-[-12deg] text-brand-magenta select-none">SLAM</div>
-      <div className="hidden xl:block graffiti-tag top-[44%] right-[8%] rotate-[14deg] text-brand-green select-none">DUNK</div>
-      <div className="hidden xl:block graffiti-tag bottom-[25%] left-[6%] rotate-[-7deg] text-brand-cyan select-none">UTM</div>
+      <div className="hidden xl:block graffiti-tag top-[14%] left-[10%] rotate-[-12deg] text-brand-magenta select-none">
+        SLAM
+      </div>
+      <div className="hidden xl:block graffiti-tag top-[44%] right-[8%] rotate-[14deg] text-brand-green select-none">
+        DUNK
+      </div>
+      <div className="hidden xl:block graffiti-tag bottom-[25%] left-[6%] rotate-[-7deg] text-brand-cyan select-none">
+        UTM
+      </div>
 
       {/* Left and Right Side Gritty Athlete Murals on Large Desktops */}
       <div className="hidden lg:block mural-side mural-left animate-pulse duration-[8000ms]"></div>
       <div className="hidden lg:block mural-side mural-right animate-pulse duration-[8500ms]"></div>
 
       {/* FIXED TOP NAVIGATION BAR */}
-      <nav id="top-navigation" className="bg-black/95 backdrop-blur-md sticky top-0 border-b-4 border-brand-magenta z-50">
+      <nav
+        id="top-navigation"
+        className="bg-black/95 backdrop-blur-md sticky top-0 border-b-4 border-brand-magenta z-50"
+      >
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3 flex justify-between items-center">
-          
           {/* Logo with Street Attitude */}
-          <a href="#introduction-section" className="flex items-center gap-2 group relative">
+          <a
+            href="#introduction-section"
+            className="flex items-center gap-2 group relative"
+          >
             <Flame className="w-8 h-8 text-brand-green animate-pulse" />
-            <div 
+            <div
               className="font-urban text-lg md:text-2xl tracking-tighter text-brand-green italic leading-none"
-              data-text="VARSITY_ARENA"
+              data-text="MPP_CS_CREW_USM"
             >
-              VARSITY<span className="text-brand-magenta block text-xs md:text-sm tracking-widest font-bold">ARENA</span>
+              MPP CS
+              <span className="text-brand-magenta block text-xs md:text-sm tracking-widest font-bold">
+                CREW USM
+              </span>
             </div>
           </a>
 
           {/* Nav Items */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#introduction-section" className="font-marker text-lg text-brand-magenta hover:text-brand-green transition-colors tracking-widest">
+            <a
+              href="#introduction-section"
+              className="font-marker text-lg text-brand-magenta hover:text-brand-green transition-colors tracking-widest"
+            >
               INTRODUCTION
             </a>
-            <a href="#registration-section" className="font-marker text-lg text-white hover:text-brand-magenta transition-colors tracking-widest">
+            <a
+              href="#registration-section"
+              className="font-marker text-lg text-white hover:text-brand-magenta transition-colors tracking-widest"
+            >
               REGISTRATION
             </a>
-            <a href="#faq-section" className="font-marker text-lg text-white hover:text-brand-magenta transition-colors tracking-widest">
+            <a
+              href="#faq-section"
+              className="font-marker text-lg text-white hover:text-brand-magenta transition-colors tracking-widest"
+            >
               FAQ
             </a>
           </div>
 
           {/* Join Now Action */}
-          <a 
+          <a
             href="#registration-section"
             className="attention-join-btn relative inline-flex items-center justify-center min-h-11 font-urban text-xs md:text-sm px-4 md:px-6 py-2 bg-brand-magenta text-black border-2 border-black font-extrabold select-none shadow-[4px_4px_0px_#39ff14] active:translate-y-[2px]"
             id="nav-join-btn"
@@ -590,16 +662,15 @@ export default function App() {
       <HeroSection />
 
       {/* CORE REGISTRATION SECTION */}
-      <section 
-        id="registration-section" 
+      <section
+        id="registration-section"
         ref={registrationSectionRef}
         className="py-24 px-4 md:px-8 border-y-8 border-black bg-[#0A0A0A] relative z-20"
       >
         <div className="max-w-4xl mx-auto">
-          
           {/* Header */}
           <div className="text-center mb-16 relative z-10">
-            <h2 
+            <h2
               id="registration-title"
               className="font-urban font-extrabold text-4xl md:text-6xl text-white uppercase italic tracking-tighter inline-block"
               data-text="ENTER THE ARENA"
@@ -609,7 +680,8 @@ export default function App() {
             {/* Hand-drawn/graffiti paint brush looking thick underline like in image */}
             <div className="h-4 w-48 bg-brand-magenta mx-auto my-4 transform rotate-[-2.5deg] skew-x-[-10deg] opacity-90 shadow-[2px_2px_0px_#000]"></div>
             <p className="font-sans text-zinc-400 max-w-md mx-auto text-sm md:text-base">
-              Lock in your 3-member team. Finalize your roster for the 3v3 battle. No subs. No excuses.
+              Lock in your 3-member team. Finalize your roster for the 3v3
+              battle. No subs. No excuses.
             </p>
           </div>
 
@@ -617,26 +689,47 @@ export default function App() {
           <AnimatePresence initial={false}>
             {Object.keys(formErrors).length > 0 && (
               <motion.div
-                initial={{ height: 0, opacity: 0, scale: 0.95, marginBottom: 0 }}
-                animate={{ height: "auto", opacity: 1, scale: 1, marginBottom: 32 }}
+                initial={{
+                  height: 0,
+                  opacity: 0,
+                  scale: 0.95,
+                  marginBottom: 0,
+                }}
+                animate={{
+                  height: "auto",
+                  opacity: 1,
+                  scale: 1,
+                  marginBottom: 32,
+                }}
                 exit={{ height: 0, opacity: 0, scale: 0.95, marginBottom: 0 }}
                 transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 className="overflow-hidden"
               >
-                <div id="error-alert" className="p-6 bg-red-950/90 border-4 border-brand-magenta text-white shadow-[6px_6px_0px_#000] rotate-[-0.5deg]">
+                <div
+                  id="error-alert"
+                  className="p-6 bg-red-950/90 border-4 border-brand-magenta text-white shadow-[6px_6px_0px_#000] rotate-[-0.5deg]"
+                >
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="w-6 h-6 text-brand-magenta shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="font-urban text-brand-magenta tracking-wider text-sm mb-2 uppercase">ROSTER VERIFICATION FAILURE</h4>
+                      <h4 className="font-urban text-brand-magenta tracking-wider text-sm mb-2 uppercase">
+                        ROSTER VERIFICATION FAILURE
+                      </h4>
                       <p className="text-xs text-zinc-300 font-medium mb-3">
-                        Your team submission lacks details. Please fill in all required fields marked in the inputs:
+                        Your team submission lacks details. Please fill in all
+                        required fields marked in the inputs:
                       </p>
                       <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1 font-mono">
-                        {Object.values(formErrors).slice(0, 5).map((err, idx) => (
-                          <li key={idx}>{err}</li>
-                        ))}
+                        {Object.values(formErrors)
+                          .slice(0, 5)
+                          .map((err, idx) => (
+                            <li key={idx}>{err}</li>
+                          ))}
                         {Object.keys(formErrors).length > 5 && (
-                          <li>And {Object.keys(formErrors).length - 5} more roster errors...</li>
+                          <li>
+                            And {Object.keys(formErrors).length - 5} more roster
+                            errors...
+                          </li>
                         )}
                       </ul>
                     </div>
@@ -652,12 +745,11 @@ export default function App() {
             <div className="absolute inset-0 border-4 border-brand-magenta translate-x-3 translate-y-3 pointer-events-none opacity-80 z-0"></div>
             <div className="absolute inset-0 border-4 border-brand-green -translate-x-1.5 -translate-y-1.5 pointer-events-none opacity-90 z-0"></div>
 
-            <form 
+            <form
               onSubmit={handleSubmit}
               className="bg-[#111111]/95 backdrop-blur-md p-4 md:p-12 border-4 border-zinc-900 relative z-10 shadow-[12px_12px_0px_#000]"
               id="registration-inner-form"
             >
-              
               {/* Spray decal look-alike block decorations */}
               <div className="absolute top-[-10px] left-[20px] bg-brand-magenta text-black text-[10px] font-mono px-2 py-0.5 tracking-widest uppercase font-bold">
                 3V3 REGISTRATION
@@ -665,25 +757,23 @@ export default function App() {
 
               {/* TEAM IDENTITY MODULE */}
               <div id="team-identity-block" className="mb-14">
-                
-                <div className="tape-label mb-8">
-                  TEAM IDENTITY
-                </div>
+                <div className="tape-label mb-8">TEAM NAME</div>
 
                 {/* Grid 2 Column for Team Meta */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  
                   {/* Team Name Input */}
                   <div className="flex flex-col gap-2">
                     <label className="font-urban text-brand-magenta tracking-wider text-xs uppercase font-extrabold">
                       TEAM NAME
                     </label>
-                    <input 
+                    <input
                       type="text"
-                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.teamName ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.teamName ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
                       value={formData.teamName}
-                      onChange={(e) => handleTeamChange("teamName", e.target.value)}
-                      placeholder="e.g. PHANTOM BALLERS"
+                      onChange={(e) =>
+                        handleTeamChange("teamName", e.target.value)
+                      }
+                      placeholder="CS BALLERS"
                       name="teamName"
                       autoComplete="organization"
                       autoCapitalize="characters"
@@ -694,233 +784,260 @@ export default function App() {
                   {/* Team School Faculty Input */}
                   <div className="flex flex-col gap-2">
                     <label className="font-urban text-brand-magenta tracking-wider text-xs uppercase font-extrabold">
-                      SCHOOL/FACULTY
+                      SCHOOL/PUSAT PENGAJIAN
                     </label>
-                    <input 
+                    <input
                       type="text"
-                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.schoolFaculty ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.schoolFaculty ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
                       value={formData.schoolFaculty}
-                      onChange={(e) => handleTeamChange("schoolFaculty", e.target.value)}
-                      placeholder="e.g. FACULTY OF COMPUTER SCIENCE"
+                      onChange={(e) =>
+                        handleTeamChange("schoolFaculty", e.target.value)
+                      }
+                      placeholder="School Of Computer Sciences"
                       name="schoolFaculty"
                       autoComplete="organization-title"
                       autoCapitalize="characters"
                     />
                     <AnimatedError error={formErrors.schoolFaculty} />
                   </div>
-
                 </div>
-
               </div>
 
               {/* TEAM ROSTER MODULE */}
               <div id="roster-players-block" className="space-y-12">
-              
-              <div className="relative mb-8">
-                <div className="absolute inset-0 border-2 border-brand-green translate-x-1.5 translate-y-1.5 pointer-events-none z-0"></div>
-                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-zinc-900/90 p-4 border-l-4 border-brand-green">
-                  <span className="bg-brand-green text-black px-4 py-1 font-stencil font-bold tracking-widest text-sm transform rotate-[-1deg]">
-                    TEAM ROSTER (03 PLAYERS REQUIRED)
-                  </span>
-                  <span className="font-mono text-xs text-brand-green tracking-widest animate-pulse font-bold">
-                    STATUS: LOCKED_3V3
-                  </span>
+                <div className="relative mb-8">
+                  <div className="absolute inset-0 border-2 border-brand-green translate-x-1.5 translate-y-1.5 pointer-events-none z-0"></div>
+                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-zinc-900/90 p-4 border-l-4 border-brand-green">
+                    <span className="bg-brand-green text-black px-4 py-1 font-stencil font-bold tracking-widest text-sm transform rotate-[-1deg]">
+                      TEAM ROSTER (03 PLAYERS REQUIRED)
+                    </span>
+                    <span className="font-mono text-xs text-brand-green tracking-widest animate-pulse font-bold">
+                      STATUS: LOCKED_3V3
+                    </span>
+                  </div>
                 </div>
+
+                {/* Player Iteration */}
+                {formData.players.map((player, index) => {
+                  const playerNumString = player.number; // e.g. "PLAYER 01"
+                  const errorPrefix = `p${index + 1}_`;
+                  const isLeader = index === 0;
+                  const isExpanded = expandedPlayer === index;
+
+                  return (
+                    <div
+                      key={player.id}
+                      className={`p-4 md:p-8 border-4 bg-[#0a0a0a]/90 relative overflow-hidden mb-8 shadow-[4px_4px_0px_#000] player-grid-card ${
+                        isLeader
+                          ? "border-brand-magenta player-01-card"
+                          : "border-zinc-850 player-other-card"
+                      }`}
+                    >
+                      {/* Aligned Large Visual Numeric Badge so users clearly spot the player number (player 03 or player 02) */}
+                      <div className="absolute right-4 top-2 select-none pointer-events-none">
+                        <span className="font-urban text-7xl md:text-9xl text-zinc-900 tracking-tighter opacity-70 block font-outline">
+                          0{index + 1}
+                        </span>
+                      </div>
+
+                      {/* Header line inside card - NOW CLICKABLE AS ACCORDION TRIGGER */}
+                      <div
+                        className={`flex justify-between items-center ${isExpanded ? "mb-6 pb-4 border-b border-zinc-900" : ""} relative z-10 cursor-pointer`}
+                        onClick={() =>
+                          setExpandedPlayer(isExpanded ? -1 : index)
+                        }
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="bg-zinc-900 border border-zinc-700 text-zinc-300 font-mono text-xs px-2.5 py-1 font-bold">
+                            {playerNumString}
+                          </span>
+                          {isLeader ? (
+                            <span className="relative inline-block bg-brand-magenta text-black font-urban text-[11px] px-3 py-1 tracking-tight italic font-black shadow-[2px_2px_0px_#000] rotate-[-1deg]">
+                              TEAM LEADER
+                            </span>
+                          ) : (
+                            <span className="relative inline-block bg-brand-green text-black font-urban text-[11px] px-3 py-1 tracking-tight uppercase font-black shadow-[2px_2px_0px_#000] rotate-[1deg]">
+                              ACTIVE ROSTER
+                            </span>
+                          )}
+                        </div>
+                        <ChevronDown
+                          className={`w-6 h-6 text-brand-magenta transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
+                        />
+                      </div>
+
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                          >
+                            {/* Inputs inside this specific player box */}
+                            {/* Stacks to single column in mobile and formats cleanly in desktop */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 font-sans mt-4">
+                              {/* Name input */}
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                                  Student Name
+                                </label>
+                                <input
+                                  type="text"
+                                  value={player.name}
+                                  onChange={(e) =>
+                                    handlePlayerChange(
+                                      index,
+                                      "name",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="FULL NAME"
+                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}name`] ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                  autoComplete={isLeader ? "name" : "off"}
+                                  autoCapitalize="characters"
+                                />
+                                <AnimatedError
+                                  error={formErrors[`${errorPrefix}name`]}
+                                  className="text-[11px] text-brand-magenta font-mono"
+                                />
+                              </div>
+
+                              {/* Matric / Student ID input */}
+                              <div className="flex flex-col gap-1.5">
+                                <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                                  Matrics Number
+                                </label>
+                                <input
+                                  type="text"
+                                  value={player.matricNo}
+                                  onChange={(e) =>
+                                    handlePlayerChange(
+                                      index,
+                                      "matricNo",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="243******"
+                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}matricNo`] ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                  autoComplete="off"
+                                  autoCapitalize="characters"
+                                />
+                                <AnimatedError
+                                  error={formErrors[`${errorPrefix}matricNo`]}
+                                  className="text-[11px] text-brand-magenta font-mono"
+                                />
+                              </div>
+
+                              {/* School Field */}
+                              <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-1">
+                                <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                                  School / Pusat Pengajian
+                                </label>
+                                <input
+                                  type="text"
+                                  value={player.school}
+                                  onChange={(e) =>
+                                    handlePlayerChange(
+                                      index,
+                                      "school",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="School of Computer Science"
+                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}school`] ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                  autoComplete="organization"
+                                  autoCapitalize="characters"
+                                />
+                                <AnimatedError
+                                  error={formErrors[`${errorPrefix}school`]}
+                                  className="text-[11px] text-brand-magenta font-mono"
+                                />
+                              </div>
+
+                              {/* Contact Number */}
+                              {isLeader && (
+                                <div className="flex flex-col gap-1.5 md:col-span-2">
+                                  <label className="text-xs font-urban text-brand-green uppercase tracking-widest font-extrabold">
+                                    Contact Number
+                                  </label>
+                                  <input
+                                    type="tel"
+                                    inputMode="tel"
+                                    value={player.contactNumber || ""}
+                                    onChange={(e) =>
+                                      handlePlayerChange(
+                                        0,
+                                        "contactNumber",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="+60123456789"
+                                    className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.p1_contactNumber ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                    autoComplete="tel"
+                                  />
+                                  <AnimatedError
+                                    error={formErrors.p1_contactNumber}
+                                    className="text-[11px] text-brand-magenta font-mono"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Player Iteration */}
-              {formData.players.map((player, index) => {
-                const playerNumString = player.number; // e.g. "PLAYER 01"
-                const errorPrefix = `p${index + 1}_`;
-                const isLeader = index === 0;
-                const isExpanded = expandedPlayer === index;
-
-                return (
-                  <div 
-                    key={player.id}
-                    className={`p-4 md:p-8 border-4 bg-[#0a0a0a]/90 relative overflow-hidden mb-8 shadow-[4px_4px_0px_#000] player-grid-card ${
-                      isLeader ? 'border-brand-magenta player-01-card' : 'border-zinc-850 player-other-card'
-                    }`}
-                  >
-                    
-                    {/* Aligned Large Visual Numeric Badge so users clearly spot the player number (player 03 or player 02) */}
-                    <div className="absolute right-4 top-2 select-none pointer-events-none">
-                      <span className="font-urban text-7xl md:text-9xl text-zinc-900 tracking-tighter opacity-70 block font-outline">
-                        0{index + 1}
-                      </span>
-                    </div>
-
-                    {/* Header line inside card - NOW CLICKABLE AS ACCORDION TRIGGER */}
-                    <div 
-                      className={`flex justify-between items-center ${isExpanded ? 'mb-6 pb-4 border-b border-zinc-900' : ''} relative z-10 cursor-pointer`}
-                      onClick={() => setExpandedPlayer(isExpanded ? -1 : index)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="bg-zinc-900 border border-zinc-700 text-zinc-300 font-mono text-xs px-2.5 py-1 font-bold">
-                          {playerNumString}
-                        </span>
-                        {isLeader ? (
-                          <span className="relative inline-block bg-brand-magenta text-black font-urban text-[11px] px-3 py-1 tracking-tight italic font-black shadow-[2px_2px_0px_#000] rotate-[-1deg]">
-                            TEAM LEADER
-                          </span>
-                        ) : (
-                          <span className="relative inline-block bg-brand-green text-black font-urban text-[11px] px-3 py-1 tracking-tight uppercase font-black shadow-[2px_2px_0px_#000] rotate-[1deg]">
-                            ACTIVE ROSTER
-                          </span>
-                        )}
-                      </div>
-                      <ChevronDown 
-                        className={`w-6 h-6 text-brand-magenta transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
-                      />
-                    </div>
-
-                    <AnimatePresence initial={false}>
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="overflow-hidden"
-                        >
-                          {/* Inputs inside this specific player box */}
-                          {/* Stacks to single column in mobile and formats cleanly in desktop */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 font-sans mt-4">
-                            
-                            {/* Name input */}
-                            <div className="flex flex-col gap-1.5">
-                              <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
-                                Student Name *
-                              </label>
-                              <input 
-                                type="text"
-                                value={player.name}
-                                onChange={(e) => handlePlayerChange(index, "name", e.target.value)}
-                                placeholder="FULL NAME"
-                                className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}name`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
-                                autoComplete={isLeader ? "name" : "off"}
-                                autoCapitalize="characters"
-                              />
-                              <AnimatedError error={formErrors[`${errorPrefix}name`]} className="text-[11px] text-brand-magenta font-mono" />
-                            </div>
-
-                            {/* Matric / Student ID input */}
-                            <div className="flex flex-col gap-1.5">
-                              <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
-                                Matrics Number *
-                              </label>
-                              <input 
-                                type="text"
-                                value={player.matricNo}
-                                onChange={(e) => handlePlayerChange(index, "matricNo", e.target.value)}
-                                placeholder="STUDENT ID"
-                                className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}matricNo`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
-                                autoComplete="off"
-                                autoCapitalize="characters"
-                              />
-                              <AnimatedError error={formErrors[`${errorPrefix}matricNo`]} className="text-[11px] text-brand-magenta font-mono" />
-                            </div>
-
-                            {/* ID / Passport input */}
-                            <div className="flex flex-col gap-1.5">
-                              <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
-                                ID/Passport Number *
-                              </label>
-                              <input 
-                                type="text"
-                                value={player.idPassport}
-                                onChange={(e) => handlePlayerChange(index, "idPassport", e.target.value)}
-                                placeholder="ID NO."
-                                className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}idPassport`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
-                                autoComplete="off"
-                                autoCapitalize="characters"
-                              />
-                              <AnimatedError error={formErrors[`${errorPrefix}idPassport`]} className="text-[11px] text-brand-magenta font-mono" />
-                            </div>
-
-                            {/* School Field */}
-                            <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-1">
-                              <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
-                                School / Faculty *
-                              </label>
-                              <input 
-                                type="text"
-                                value={player.school}
-                                onChange={(e) => handlePlayerChange(index, "school", e.target.value)}
-                                placeholder="SCHOOL FACULTY NAME"
-                                className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}school`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
-                                autoComplete="organization"
-                                autoCapitalize="characters"
-                              />
-                              <AnimatedError error={formErrors[`${errorPrefix}school`]} className="text-[11px] text-brand-magenta font-mono" />
-                            </div>
-
-                            {/* Contact Number */}
-                            {isLeader && (
-                              <div className="flex flex-col gap-1.5 md:col-span-2">
-                                <label className="text-xs font-urban text-brand-green uppercase tracking-widest font-extrabold">
-                                  Contact Number *
-                                </label>
-                                <input 
-                                  type="tel"
-                                  inputMode="tel"
-                                  value={player.contactNumber || ""}
-                                  onChange={(e) => handlePlayerChange(0, "contactNumber", e.target.value)}
-                                  placeholder="+60..."
-                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.p1_contactNumber ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
-                                  autoComplete="tel"
-                                />
-                                <AnimatedError error={formErrors.p1_contactNumber} className="text-[11px] text-brand-magenta font-mono" />
-                              </div>
-                            )}
-
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                  </div>
-                );
-              })}
-
-            </div>
-
-            {/* Submitting Trigger Button */}
-            <div className="mt-14 pt-8 border-t border-zinc-900 flex flex-col sm:flex-row justify-end items-center gap-6">
-              <span className="text-xs text-zinc-500 font-mono text-center sm:text-right max-w-xs">
-                Make sure all Student IDs match real physical documents. Disqualification is absolute.
-              </span>
-              <button 
-                type="submit"
-                id="submit-roster-btn"
-                className={`relative w-full sm:w-auto min-h-12 inline-flex items-center justify-center font-urban text-lg px-10 py-5 border-2 font-extrabold select-none transition-all cursor-pointer
-                  ${isFormComplete 
-                    ? 'bg-brand-green text-black border-black shadow-[6px_6px_0px_#ff00ff] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#ff00ff] active:translate-x-[3px] active:translate-y-[3px] active:shadow-[3px_3px_0px_#ff00ff]' 
-                    : 'bg-zinc-800 text-zinc-400 border-zinc-700 shadow-[4px_4px_0px_#000] hover:bg-zinc-700'}`}
-              >
-                {isFormComplete ? "SUBMIT ROSTER" : `FILL ${15 - completedFields} MORE FIELDS`}
-              </button>
-            </div>
-
-          </form>
+              {/* Submitting Trigger Button */}
+              <div className="mt-14 pt-8 border-t border-zinc-900 flex flex-col sm:flex-row justify-end items-center gap-6">
+                <span className="text-xs text-zinc-500 font-mono text-center sm:text-right max-w-xs">
+                  Make sure all Student IDs match real physical documents.
+                  Jangan Tipu" bro💔💔
+                </span>
+                <button
+                  type="submit"
+                  id="submit-roster-btn"
+                  className={`relative w-full sm:w-auto min-h-12 inline-flex items-center justify-center font-urban text-lg px-10 py-5 border-2 font-extrabold select-none transition-all cursor-pointer
+                  ${
+                    isFormComplete
+                      ? "bg-brand-green text-black border-black shadow-[6px_6px_0px_#ff00ff] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#ff00ff] active:translate-x-[3px] active:translate-y-[3px] active:shadow-[3px_3px_0px_#ff00ff]"
+                      : "bg-zinc-800 text-zinc-400 border-zinc-700 shadow-[4px_4px_0px_#000] hover:bg-zinc-700"
+                  }`}
+                >
+                  {isFormComplete
+                    ? "SUBMIT ROSTER"
+                    : `FILL ${12 - completedFields} MORE FIELDS`}
+                </button>
+              </div>
+            </form>
           </div>
 
           {/* SENSATIONAL SUCCESS OUTPUT BANNER (Renders program registration payload inside the screen upon click success) */}
           {submittedData && (
-            <div 
-              id="success-panel" 
+            <div
+              id="success-panel"
               className="mt-12 bg-zinc-950 border-4 border-brand-green p-6 md:p-10 shadow-[10px_10px_0px_#000] scroll-mt-24"
             >
               <div className="flex items-center gap-4 mb-6 pb-4 border-b border-zinc-800">
                 <CheckCircle2 className="w-8 h-8 text-brand-green shrink-0" />
                 <div>
-                  <h3 className="font-urban text-xl text-brand-green tracking-tight uppercase">REGISTRATION SECURED</h3>
-                  <p className="text-zinc-400 text-xs font-mono uppercase">CS-HOOPERS SQUAD ROSTER LOGGED SUCCESSFULLY</p>
+                  <h3 className="font-urban text-xl text-brand-green tracking-tight uppercase">
+                    REGISTRATION SECURED
+                  </h3>
+                  <p className="text-zinc-400 text-xs font-mono uppercase">
+                    CS-HOOPERS SQUAD ROSTER LOGGED SUCCESSFULLY
+                  </p>
                 </div>
               </div>
 
               <div className="p-4 bg-[#0A0A0A] border border-zinc-800 mb-6 rounded-none">
-                <h4 className="text-xs font-stencil mb-2 text-brand-magenta tracking-widest uppercase">REGISTRATION PAYLOAD OUTPUT</h4>
+                <h4 className="text-xs font-stencil mb-2 text-brand-magenta tracking-widest uppercase">
+                  REGISTRATION PAYLOAD OUTPUT
+                </h4>
                 <pre className="text-xs text-brand-green font-mono overflow-x-auto max-h-60 p-2 whitespace-pre">
                   {JSON.stringify(submittedData, null, 2)}
                 </pre>
@@ -928,10 +1045,13 @@ export default function App() {
 
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#111] p-4 border-l-4 border-brand-magenta">
                 <div className="text-xs text-zinc-400 font-sans">
-                  <span className="font-bold text-white block">Next Objective:</span>
-                  Save your student IDs, keep checking your leader's inbox, and train at UTM Court A. Live brackets drop shortly.
+                  <span className="font-bold text-white block">
+                    Next Objective:
+                  </span>
+                  Save your student IDs, keep checking your leader's inbox, and
+                  train at UTM Court A. Live brackets drop shortly.
                 </div>
-                <button 
+                <button
                   onClick={handleResetForm}
                   className="px-5 py-2 hover:bg-zinc-900 border border-zinc-700 hover:text-white text-zinc-400 text-xs uppercase font-urban shrink-0 transition-colors"
                 >
@@ -940,7 +1060,6 @@ export default function App() {
               </div>
             </div>
           )}
-
         </div>
         <AnimatePresence>
           {showMobileSubmit && (
@@ -949,17 +1068,21 @@ export default function App() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 72, opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/95 border-t-2 px-4 py-3 backdrop-blur-sm ${isFormComplete ? 'border-brand-green' : 'border-zinc-800'}`}
+              className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/95 border-t-2 px-4 py-3 backdrop-blur-sm ${isFormComplete ? "border-brand-green" : "border-zinc-800"}`}
             >
               <button
                 type="submit"
                 form="registration-inner-form"
                 className={`w-full min-h-12 inline-flex items-center justify-center font-urban text-base border-2 font-extrabold active:translate-y-[2px] transition-all
-                  ${isFormComplete 
-                    ? 'bg-brand-green text-black border-black shadow-[4px_4px_0px_#ff00ff]' 
-                    : 'bg-zinc-800 text-zinc-400 border-zinc-900 shadow-none'}`}
+                  ${
+                    isFormComplete
+                      ? "bg-brand-green text-black border-black shadow-[4px_4px_0px_#ff00ff]"
+                      : "bg-zinc-800 text-zinc-400 border-zinc-900 shadow-none"
+                  }`}
               >
-                {isFormComplete ? "SUBMIT ROSTER" : `FILL ${15 - completedFields} MORE FIELDS`}
+                {isFormComplete
+                  ? "SUBMIT ROSTER"
+                  : `FILL ${12 - completedFields} MORE FIELDS`}
               </button>
             </motion.div>
           )}
@@ -967,8 +1090,8 @@ export default function App() {
       </section>
 
       {/* ROAD STREET FAQ SECTION (Interactive pure React collapsible state driven) */}
-      <section 
-        id="faq-section" 
+      <section
+        id="faq-section"
         className="py-24 px-4 md:px-8 bg-[#0A0A0A] relative z-20 max-w-4xl mx-auto"
       >
         <div className="mb-14 relative inline-block">
@@ -982,24 +1105,24 @@ export default function App() {
           {faqs.map((faq, idx) => {
             const isOpen = activeFaq === idx;
             return (
-              <div 
+              <div
                 key={idx}
                 className="bg-[#111111] border-4 border-zinc-800 transition-all hover:border-zinc-700"
               >
                 {/* Accordion Trigger */}
-                <button 
+                <button
                   onClick={() => setActiveFaq(isOpen ? null : idx)}
                   className="w-full text-left flex justify-between items-center p-6 cursor-pointer font-marker text-lg md:text-xl text-white hover:text-brand-green transition-colors focus:outline-none"
                 >
                   <span>{faq.question}</span>
-                  <ChevronDown 
-                    className={`w-6 h-6 text-brand-magenta transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} 
+                  <ChevronDown
+                    className={`w-6 h-6 text-brand-magenta transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
                   />
                 </button>
 
                 {/* Accordion Content */}
-                <div 
-                  className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-56 border-t border-zinc-900 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'}`}
+                <div
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-56 border-t border-zinc-900 opacity-100" : "max-h-0 opacity-0 pointer-events-none"}`}
                 >
                   <div className="p-6 text-sm md:text-base text-zinc-300 leading-relaxed font-sans font-medium">
                     {faq.answer}
@@ -1014,7 +1137,6 @@ export default function App() {
       {/* FOOTER */}
       <footer className="bg-[#111111] border-t-8 border-brand-green py-16 relative z-10">
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center gap-10">
-          
           <div className="text-center md:text-left">
             <h2 className="font-urban text-2xl text-white italic tracking-tighter uppercase">
               VARSITY <span className="text-brand-magenta">ARENA</span>
@@ -1025,22 +1147,41 @@ export default function App() {
           </div>
 
           <div className="flex flex-wrap justify-center gap-6">
-            <a href="#" className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors">Privacy</a>
-            <a href="#" className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors">Terms</a>
-            <a href="#" className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors">Rules</a>
-            <a href="#" className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors">Support</a>
+            <a
+              href="#"
+              className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors"
+            >
+              Privacy
+            </a>
+            <a
+              href="#"
+              className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors"
+            >
+              Terms
+            </a>
+            <a
+              href="#"
+              className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors"
+            >
+              Rules
+            </a>
+            <a
+              href="#"
+              className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors"
+            >
+              Support
+            </a>
           </div>
 
           <div className="font-stencil text-xs text-zinc-500 tracking-widest text-center md:text-right">
-            © 2026 VARSITY ARENA.<br />
+            © 2026 VARSITY ARENA.
+            <br />
             <span className="text-brand-green tracking-wide block font-urban text-[10px] mt-1">
               RAW. GRITTY. TECHNICAL.
             </span>
           </div>
-
         </div>
       </footer>
-
     </div>
   );
 }
