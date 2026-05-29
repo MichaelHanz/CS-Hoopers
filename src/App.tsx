@@ -1189,45 +1189,18 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center gap-10">
           <div className="text-center md:text-left">
             <h2 className="font-urban text-2xl text-white italic tracking-tighter uppercase">
-              VARSITY <span className="text-brand-magenta">ARENA</span>
+              MPP <span className="text-brand-magenta">CS CREW </span>
             </h2>
             <p className="text-xs text-zinc-500 font-mono tracking-widest uppercase mt-2">
-              Championship system platform
+              3v3 Basketball Tournament
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-6">
-            <a
-              href="#"
-              className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors"
-            >
-              Privacy
-            </a>
-            <a
-              href="#"
-              className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors"
-            >
-              Terms
-            </a>
-            <a
-              href="#"
-              className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors"
-            >
-              Rules
-            </a>
-            <a
-              href="#"
-              className="font-stencil text-zinc-400 hover:text-brand-magenta uppercase tracking-wider text-xs transition-colors"
-            >
-              Support
-            </a>
-          </div>
-
           <div className="font-stencil text-xs text-zinc-500 tracking-widest text-center md:text-right">
-            © 2026 VARSITY ARENA.
+            © 2026 MPP CS CREW.
             <br />
             <span className="text-brand-green tracking-wide block font-urban text-[10px] mt-1">
-              RAW. GRITTY. TECHNICAL.
+              LETS GO BALLIN🏀🏀
             </span>
           </div>
         </div>
