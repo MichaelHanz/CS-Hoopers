@@ -339,3 +339,36 @@ body {
   text-shadow: 0 0 15px rgba(0, 255, 255, 0.7), 0 0 30px rgba(0, 255, 255, 0.4) !important;
   opacity: 0.95 !important;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .glitch-effect::before,
+  .glitch-effect::after,
+  .halftone-overlay,
+  .visual-noise,
+  .graffiti-tag,
+  .attention-join-btn,
+  .mural-left,
+  .mural-right {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .halftone-overlay,
+  .visual-noise,
+  .graffiti-tag {
+    display: none !important;
+  }
+
+  .attention-join-btn,
+  .mural-left,
+  .mural-right {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  #registration-section {
+    padding-bottom: 6.5rem;
+  }
+}

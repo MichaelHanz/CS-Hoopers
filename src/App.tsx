@@ -6,11 +6,6 @@ import {
   Trophy, 
   ChevronDown, 
   CheckCircle2, 
-  User, 
-  Phone, 
-  GraduationCap, 
-  Briefcase, 
-  ShieldCheck, 
   AlertTriangle,
   Flame,
 } from "lucide-react";
@@ -51,8 +46,7 @@ const AnimatedError = ({ error, className = "text-xs text-brand-magenta font-mon
   );
 };
 
-export default function App() {
-  // Mouse movement interactive glitch states for Hero section
+const HeroSection = React.memo(function HeroSection() {
   const [mouseState, setMouseState] = useState({
     x: 0,
     y: 0,
@@ -71,7 +65,6 @@ export default function App() {
     lastY: 0,
     lastTime: 0,
     velocity: 0,
-    isHovered: false,
   });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
@@ -79,35 +72,34 @@ export default function App() {
     const rect = containerRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    
+
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
     const relX = (x - centerX) / centerX;
     const relY = (y - centerY) / centerY;
     const dist = Math.sqrt(relX * relX + relY * relY);
-    
+
     const now = Date.now();
     const dt = now - mouseRef.current.lastTime;
     let computedVelocity = mouseRef.current.velocity;
-    
+
     if (dt > 0) {
       const dx = x - mouseRef.current.lastX;
       const dy = y - mouseRef.current.lastY;
       const distanceMoved = Math.sqrt(dx * dx + dy * dy);
       const instSpeed = distanceMoved / dt;
       computedVelocity = computedVelocity * 0.4 + instSpeed * 0.6;
-      computedVelocity = Math.min(computedVelocity, 8); // clamp top speed
+      computedVelocity = Math.min(computedVelocity, 8);
     }
-    
+
     mouseRef.current.lastX = x;
     mouseRef.current.lastY = y;
     mouseRef.current.lastTime = now;
     mouseRef.current.velocity = computedVelocity;
     mouseRef.current.x = x;
     mouseRef.current.y = y;
-    
-    setMouseState(prev => ({
-      ...prev,
+
+    setMouseState({
       x,
       y,
       relX,
@@ -115,12 +107,12 @@ export default function App() {
       dist,
       velocity: computedVelocity,
       isHovered: true,
-    }));
+    });
   };
 
   const handleMouseLeave = () => {
     mouseRef.current.velocity = 0;
-    mouseRef.current.isHovered = false;
+    setJitter({ x: 0, y: 0 });
     setMouseState(prev => ({
       ...prev,
       relX: 0,
@@ -132,10 +124,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (!mouseState.isHovered) {
-      setJitter({ x: 0, y: 0 });
-      return;
-    }
+    if (!mouseState.isHovered) return;
 
     let active = true;
     let animId: number;
@@ -147,8 +136,8 @@ export default function App() {
       const vel = mouseRef.current.velocity;
 
       if (vel > 1.2) {
-        const jX = (Math.random() - 0.5) * (vel * 12);
-        const jY = (Math.random() - 0.5) * (vel * 18);
+        const jX = (Math.random() - 0.5) * (vel * 8);
+        const jY = (Math.random() - 0.5) * (vel * 12);
         setJitter({ x: jX, y: jY });
       } else {
         setJitter({ x: 0, y: 0 });
@@ -169,6 +158,131 @@ export default function App() {
       cancelAnimationFrame(animId);
     };
   }, [mouseState.isHovered]);
+
+  return (
+    <section
+      id="introduction-section"
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className="relative min-h-[90vh] flex flex-col justify-center items-center py-16 px-4 md:px-8 max-w-7xl mx-auto z-10 overflow-hidden introduction-section-interactive"
+      style={{
+        "--mouse-rel-x": mouseState.relX,
+        "--mouse-rel-y": mouseState.relY,
+        "--mouse-dist": mouseState.dist,
+      } as React.CSSProperties}
+    >
+      {mouseState.isHovered && (
+        <div
+          className="absolute pointer-events-none z-30 mix-blend-screen overflow-hidden"
+          style={{
+            left: mouseState.x,
+            top: mouseState.y,
+            transform: 'translate(-50%, -50%)',
+            width: `${140 + mouseState.velocity * 45}px`,
+            height: `${140 + mouseState.velocity * 45}px`,
+            transition: 'width 0.08s ease-out, height 0.08s ease-out',
+          }}
+        >
+          <div
+            className="absolute rounded-full w-full h-full blur-2xl opacity-40 mix-blend-color-dodge transition-all duration-200"
+            style={{
+              background: mouseState.velocity > 1.2
+                ? 'radial-gradient(circle, rgba(255,0,255,0.22) 0%, rgba(0,255,255,0.18) 72%)'
+                : 'radial-gradient(circle, rgba(0,255,255,0.25) 0%, rgba(255,0,255,0.15) 70%)'
+            }}
+          />
+        </div>
+      )}
+
+      <div id="intro-status" className="inline-flex items-center gap-2 px-5 py-2 bg-black border-2 border-brand-green mb-8 rotate-[-1deg] hover:rotate-1 transition-transform pointer-events-none">
+        <span className="w-3 h-3 rounded-full bg-brand-green animate-ping"></span>
+        <span className="font-stencil text-brand-green text-sm md:text-base tracking-widest">REGISTRATIONS OPEN</span>
+      </div>
+
+      <div className="text-center w-full max-w-5xl mb-12 relative z-20 px-2">
+        <h1
+          id="hero-title"
+          className="font-syne font-extrabold leading-none tracking-tighter italic cursor-default select-none uppercase"
+          style={{
+            transform: `translate(${jitter.x}px, ${jitter.y}px)`,
+            transition: 'transform 0.05s ease-out'
+          }}
+        >
+          <span
+            className="text-brand-magenta block glitch-effect tracking-tight text-[10vw] sm:text-6xl md:text-8xl lg:text-[110px] xl:text-[130px]"
+            data-text="CS-HOOPERS"
+          >
+            CS-HOOPERS
+          </span>
+          <span className="bg-brand-green text-black px-2.5 sm:px-8 py-1 sm:py-2.5 mx-1 sm:mx-2 my-2.5 sm:my-3 transform rotate-[1.5deg] inline-block font-urban text-[3.8vw] sm:text-3xl md:text-5xl lg:text-7xl tracking-normal shadow-[3px_3px_0px_#ff00ff] md:shadow-[6px_6px_0px_#ff00ff]">
+            COMPUTER SCIENCE
+          </span>
+          <span
+            className="text-white block tracking-tighter text-[7.8vw] sm:text-6xl md:text-8xl lg:text-[110px] xl:text-[130px] mt-2 glitch-effect leading-none"
+            data-text="SPORTS DAY"
+          >
+            SPORTS DAY
+          </span>
+        </h1>
+      </div>
+
+      <div className="max-w-2xl text-center bg-zinc-950/90 p-6 md:p-8 border-l-4 border-brand-magenta mb-16 shadow-[8px_8px_0px_#111]">
+        <p className="font-sans text-base md:text-lg text-zinc-300 leading-relaxed">
+          The premier collegiate basketball tournament where data meets the asphalt. Assemble your squad, register your roster, and prepare for high-stakes urban competition.
+        </p>
+      </div>
+
+      <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl">
+        <div
+          id="card-dates"
+          className="bg-gradient-to-br from-[#111111]/90 via-[#1d1233]/90 to-[#0A0A0A]/90 backdrop-blur-md border-4 border-brand-magenta p-8 flex flex-col items-center text-center transform rotate-[-1deg] transition-all hover:rotate-0 hover:scale-105 shadow-[6px_6px_0px_#000]"
+        >
+          <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-magenta flex items-center justify-center mb-4">
+            <Calendar className="w-6 h-6 text-brand-magenta" />
+          </div>
+          <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">DATES</h3>
+          <p className="stencil-text text-xl md:text-2xl text-brand-green font-bold">
+            OCT 15 - 20, 2024
+          </p>
+          <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">Live Schedule</span>
+        </div>
+
+        <div
+          id="card-venue"
+          className="bg-gradient-to-br from-[#111111]/90 via-[#0a2315]/90 to-[#0A0A0A]/90 backdrop-blur-md border-4 border-brand-green p-8 flex flex-col items-center text-center transform rotate-[1.5deg] transition-all hover:rotate-0 hover:scale-105 shadow-[6px_6px_0px_#000]"
+        >
+          <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-green flex items-center justify-center mb-4">
+            <MapPin className="w-6 h-6 text-brand-green" />
+          </div>
+          <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">VENUE</h3>
+          <p className="stencil-text text-xl md:text-2xl text-brand-magenta font-bold">
+            MAIN VARSITY ARENA
+          </p>
+          <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">UTM COURT A</span>
+        </div>
+
+        <div
+          id="card-prize"
+          className="bg-gradient-to-br from-[#111111]/90 via-[#0d1c33]/90 to-[#0A0A0A]/90 backdrop-blur-md border-4 border-brand-magenta p-8 flex flex-col items-center text-center transform rotate-[-2deg] transition-all hover:rotate-0 hover:scale-105 shadow-[6px_6px_0px_#000]"
+        >
+          <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-magenta flex items-center justify-center mb-4">
+            <Trophy className="w-6 h-6 text-brand-magenta" />
+          </div>
+          <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">PRIZE</h3>
+          <p className="stencil-text text-xl md:text-2xl text-brand-green font-bold">
+            $5,000 + RINGS
+          </p>
+          <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">Championship Pack</span>
+        </div>
+      </div>
+    </section>
+  );
+});
+
+export default function App() {
+  const registrationSectionRef = useRef<HTMLElement>(null);
+  const [showMobileSubmit, setShowMobileSubmit] = useState(false);
 
   // State for the Form
   const [formData, setFormData] = useState<TeamRegistration>({
@@ -372,6 +486,24 @@ export default function App() {
     }
   ];
 
+  useEffect(() => {
+    const section = registrationSectionRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setShowMobileSubmit(entry.isIntersecting);
+      },
+      {
+        root: null,
+        threshold: 0.15,
+      }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div id="app-root" className="bg-[#0A0A0A] text-white min-h-screen font-sans selection:bg-brand-green selection:text-black antialiased relative overflow-x-hidden">
       
@@ -396,7 +528,7 @@ export default function App() {
           <a href="#introduction-section" className="flex items-center gap-2 group relative">
             <Flame className="w-8 h-8 text-brand-green animate-pulse" />
             <div 
-              className="font-urban text-lg md:text-2xl tracking-tighter text-brand-green italic leading-none glitch-effect"
+              className="font-urban text-lg md:text-2xl tracking-tighter text-brand-green italic leading-none"
               data-text="VARSITY_ARENA"
             >
               VARSITY<span className="text-brand-magenta block text-xs md:text-sm tracking-widest font-bold">ARENA</span>
@@ -419,7 +551,7 @@ export default function App() {
           {/* Join Now Action */}
           <a 
             href="#registration-section"
-            className="attention-join-btn relative inline-flex items-center justify-center font-urban text-xs md:text-sm px-4 md:px-6 py-2 bg-brand-magenta text-black border-2 border-black font-extrabold select-none shadow-[4px_4px_0px_#39ff14] active:translate-y-[2px]"
+            className="attention-join-btn relative inline-flex items-center justify-center min-h-11 font-urban text-xs md:text-sm px-4 md:px-6 py-2 bg-brand-magenta text-black border-2 border-black font-extrabold select-none shadow-[4px_4px_0px_#39ff14] active:translate-y-[2px]"
             id="nav-join-btn"
           >
             JOIN NOW
@@ -427,171 +559,12 @@ export default function App() {
         </div>
       </nav>
 
-      {/* HERO SECTION / INTRODUCTION */}
-      <section 
-        id="introduction-section" 
-        ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        className="relative min-h-[90vh] flex flex-col justify-center items-center py-16 px-4 md:px-8 max-w-7xl mx-auto z-10 overflow-hidden introduction-section-interactive"
-        style={{
-          "--mouse-rel-x": mouseState.relX,
-          "--mouse-rel-y": mouseState.relY,
-          "--mouse-dist": mouseState.dist,
-        } as React.CSSProperties}
-      >
-        
-        {/* Dynamic Scanline Strips and Cursor Light Leaks (Effect B) */}
-        {mouseState.isHovered && (
-          <div 
-            className="absolute pointer-events-none z-30 mix-blend-screen overflow-hidden"
-            style={{
-              left: mouseState.x,
-              top: mouseState.y,
-              transform: 'translate(-50%, -50%)',
-              width: `${140 + mouseState.velocity * 60}px`,
-              height: `${140 + mouseState.velocity * 60}px`,
-              transition: 'width 0.08s ease-out, height 0.08s ease-out',
-            }}
-          >
-            {/* Subtle light leakage */}
-            <div 
-              className="absolute rounded-full w-full h-full blur-2xl opacity-40 mix-blend-color-dodge transition-all duration-200"
-              style={{
-                background: mouseState.velocity > 1.2
-                  ? (Math.random() > 0.5 ? '#ff00ff' : '#00ffff')
-                  : 'radial-gradient(circle, rgba(0,255,255,0.25) 0%, rgba(255,0,255,0.15) 70%)'
-              }}
-            />
-            
-            {/* Toxic cyan and hot magenta flashing micro layers when velocity is high */}
-            {mouseState.velocity > 1.2 && (
-              <div className="absolute inset-0">
-                {Array.from({ length: 5 }).map((_, i) => {
-                  const stripWidth = 100 + Math.random() * 150;
-                  const stripHeight = 3 + Math.random() * 14;
-                  const leftPos = (Math.random() - 0.5) * 100;
-                  const topPos = Math.random() * 100;
-                  const useMagenta = Math.random() > 0.5;
-                  const skew = (Math.random() - 0.5) * 50;
-                  return (
-                    <div
-                      key={i}
-                      className="absolute"
-                      style={{
-                        width: `${stripWidth}px`,
-                        height: `${stripHeight}px`,
-                        left: `calc(50% + ${leftPos}px)`,
-                        top: `${topPos}%`,
-                        transform: `translate(-50%, -50%) skewX(${skew}deg)`,
-                        backgroundColor: useMagenta ? '#ff00ff' : '#00ffff',
-                        boxShadow: `0 0 12px ${useMagenta ? '#ff00ff' : '#00ffff'}`,
-                        opacity: 0.6 + Math.random() * 0.4,
-                      }}
-                    />
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Registration Badge Warning */}
-        <div id="intro-status" className="inline-flex items-center gap-2 px-5 py-2 bg-black border-2 border-brand-green mb-8 rotate-[-1deg] hover:rotate-1 transition-transform pointer-events-none">
-          <span className="w-3 h-3 rounded-full bg-brand-green animate-ping"></span>
-          <span className="font-stencil text-brand-green text-sm md:text-base tracking-widest">REGISTRATIONS OPEN</span>
-        </div>
-
-        {/* Glitched Main Title with True Chromatic Aberration data-text attributes */}
-        <div className="text-center w-full max-w-5xl mb-12 relative z-20 px-2">
-          <h1 
-            id="hero-title"
-            className="font-syne font-extrabold leading-none tracking-tighter italic cursor-default select-none uppercase"
-            style={{
-              transform: `translate(${jitter.x}px, ${jitter.y}px)`,
-              transition: 'transform 0.05s ease-out'
-            }}
-          >
-            <span 
-              className="text-brand-magenta block glitch-effect tracking-tight text-[10vw] sm:text-6xl md:text-8xl lg:text-[110px] xl:text-[130px]"
-              data-text="CS-HOOPERS"
-            >
-              CS-HOOPERS
-            </span>
-            <span className="bg-brand-green text-black px-2.5 sm:px-8 py-1 sm:py-2.5 mx-1 sm:mx-2 my-2.5 sm:my-3 transform rotate-[1.5deg] inline-block font-urban text-[3.8vw] sm:text-3xl md:text-5xl lg:text-7xl tracking-normal shadow-[3px_3px_0px_#ff00ff] md:shadow-[6px_6px_0px_#ff00ff]">
-              COMPUTER SCIENCE
-            </span>
-            <span 
-              className="text-white block tracking-tighter text-[7.8vw] sm:text-6xl md:text-8xl lg:text-[110px] xl:text-[130px] mt-2 glitch-effect leading-none"
-              data-text="SPORTS DAY"
-            >
-              SPORTS DAY
-            </span>
-          </h1>
-        </div>
-
-        {/* Tournament Manifesto */}
-        <div className="max-w-2xl text-center bg-zinc-950/90 p-6 md:p-8 border-l-4 border-brand-magenta mb-16 shadow-[8px_8px_0px_#111]">
-          <p className="font-sans text-base md:text-lg text-zinc-300 leading-relaxed">
-            The premier collegiate basketball tournament where data meets the asphalt. Assemble your squad, register your roster, and prepare for high-stakes urban competition.
-          </p>
-        </div>
-
-        {/* 3 Info Cards with Glassmorphic Gradient backgrounds & neon glow borders */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl">
-          
-          {/* Dates Card */}
-          <div 
-            id="card-dates"
-            className="bg-gradient-to-br from-[#111111]/90 via-[#1d1233]/90 to-[#0A0A0A]/90 backdrop-blur-md border-4 border-brand-magenta p-8 flex flex-col items-center text-center transform rotate-[-1deg] transition-all hover:rotate-0 hover:scale-105 shadow-[6px_6px_0px_#000]"
-          >
-            <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-magenta flex items-center justify-center mb-4">
-              <Calendar className="w-6 h-6 text-brand-magenta" />
-            </div>
-            <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">DATES</h3>
-            <p className="stencil-text text-xl md:text-2xl text-brand-green font-bold">
-              OCT 15 - 20, 2024
-            </p>
-            <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">Live Schedule</span>
-          </div>
-
-          {/* Venue Card */}
-          <div 
-            id="card-venue"
-            className="bg-gradient-to-br from-[#111111]/90 via-[#0a2315]/90 to-[#0A0A0A]/90 backdrop-blur-md border-4 border-brand-green p-8 flex flex-col items-center text-center transform rotate-[1.5deg] transition-all hover:rotate-0 hover:scale-105 shadow-[6px_6px_0px_#000]"
-          >
-            <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-green flex items-center justify-center mb-4">
-              <MapPin className="w-6 h-6 text-brand-green" />
-            </div>
-            <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">VENUE</h3>
-            <p className="stencil-text text-xl md:text-2xl text-brand-magenta font-bold">
-              MAIN VARSITY ARENA
-            </p>
-            <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">UTM COURT A</span>
-          </div>
-
-          {/* Prize Card */}
-          <div 
-            id="card-prize"
-            className="bg-gradient-to-br from-[#111111]/90 via-[#0d1c33]/90 to-[#0A0A0A]/90 backdrop-blur-md border-4 border-brand-magenta p-8 flex flex-col items-center text-center transform rotate-[-2deg] transition-all hover:rotate-0 hover:scale-105 shadow-[6px_6px_0px_#000]"
-          >
-            <div className="w-12 h-12 rounded-full bg-zinc-900 border-2 border-brand-magenta flex items-center justify-center mb-4">
-              <Trophy className="w-6 h-6 text-brand-magenta" />
-            </div>
-            <h3 className="font-urban text-lg text-white mb-2 tracking-wide uppercase">PRIZE</h3>
-            <p className="stencil-text text-xl md:text-2xl text-brand-green font-bold">
-              $5,000 + RINGS
-            </p>
-            <span className="text-xs text-zinc-500 font-mono mt-3 uppercase tracking-widest">Championship Pack</span>
-          </div>
-
-        </div>
-
-      </section>
+      <HeroSection />
 
       {/* CORE REGISTRATION SECTION */}
       <section 
         id="registration-section" 
+        ref={registrationSectionRef}
         className="py-24 px-4 md:px-8 border-y-8 border-black bg-[#0A0A0A] relative z-20"
       >
         <div className="max-w-4xl mx-auto">
@@ -600,7 +573,7 @@ export default function App() {
           <div className="text-center mb-16 relative z-10">
             <h2 
               id="registration-title"
-              className="font-urban font-extrabold text-4xl md:text-6xl text-white uppercase italic tracking-tighter glitch-effect inline-block"
+              className="font-urban font-extrabold text-4xl md:text-6xl text-white uppercase italic tracking-tighter inline-block"
               data-text="ENTER THE ARENA"
             >
               ENTER THE <span className="text-brand-green">ARENA</span>
@@ -684,6 +657,7 @@ export default function App() {
                       onChange={(e) => handleTeamChange("teamName", e.target.value)}
                       placeholder="e.g. PHANTOM BALLERS"
                       name="teamName"
+                      autoComplete="organization"
                     />
                     <AnimatedError error={formErrors.teamName} />
                   </div>
@@ -700,6 +674,7 @@ export default function App() {
                       onChange={(e) => handleTeamChange("schoolFaculty", e.target.value)}
                       placeholder="e.g. FACULTY OF COMPUTER SCIENCE"
                       name="schoolFaculty"
+                      autoComplete="organization-title"
                     />
                     <AnimatedError error={formErrors.schoolFaculty} />
                   </div>
@@ -777,6 +752,7 @@ export default function App() {
                           onChange={(e) => handlePlayerChange(index, "name", e.target.value)}
                           placeholder="FULL NAME"
                           className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}name`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                          autoComplete={isLeader ? "name" : "off"}
                         />
                         <AnimatedError error={formErrors[`${errorPrefix}name`]} className="text-[11px] text-brand-magenta font-mono" />
                       </div>
@@ -792,6 +768,7 @@ export default function App() {
                           onChange={(e) => handlePlayerChange(index, "matricNo", e.target.value)}
                           placeholder="STUDENT ID"
                           className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}matricNo`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                          autoComplete="off"
                         />
                         <AnimatedError error={formErrors[`${errorPrefix}matricNo`]} className="text-[11px] text-brand-magenta font-mono" />
                       </div>
@@ -807,6 +784,7 @@ export default function App() {
                           onChange={(e) => handlePlayerChange(index, "idPassport", e.target.value)}
                           placeholder="ID NO."
                           className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}idPassport`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                          autoComplete="off"
                         />
                         <AnimatedError error={formErrors[`${errorPrefix}idPassport`]} className="text-[11px] text-brand-magenta font-mono" />
                       </div>
@@ -822,6 +800,7 @@ export default function App() {
                           onChange={(e) => handlePlayerChange(index, "school", e.target.value)}
                           placeholder="SCHOOL FACULTY NAME"
                           className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}school`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                          autoComplete="organization"
                         />
                         <AnimatedError error={formErrors[`${errorPrefix}school`]} className="text-[11px] text-brand-magenta font-mono" />
                       </div>
@@ -833,11 +812,13 @@ export default function App() {
                             Contact Number *
                           </label>
                           <input 
-                            type="text"
+                            type="tel"
+                            inputMode="tel"
                             value={player.contactNumber || ""}
                             onChange={(e) => handlePlayerChange(0, "contactNumber", e.target.value)}
                             placeholder="+60..."
                             className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.p1_contactNumber ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                            autoComplete="tel"
                           />
                           <AnimatedError error={formErrors.p1_contactNumber} className="text-[11px] text-brand-magenta font-mono" />
                         </div>
@@ -859,7 +840,7 @@ export default function App() {
               <button 
                 type="submit"
                 id="submit-roster-btn"
-                className="relative cursor-pointer w-full sm:w-auto inline-flex items-center justify-center font-urban text-lg px-10 py-5 bg-brand-green text-black border-2 border-black font-extrabold select-none shadow-[6px_6px_0px_#ff00ff] transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#ff00ff] active:translate-x-[3px] active:translate-y-[3px] active:shadow-[3px_3px_0px_#ff00ff]"
+                className="relative cursor-pointer w-full sm:w-auto min-h-12 inline-flex items-center justify-center font-urban text-lg px-10 py-5 bg-brand-green text-black border-2 border-black font-extrabold select-none shadow-[6px_6px_0px_#ff00ff] transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#ff00ff] active:translate-x-[3px] active:translate-y-[3px] active:shadow-[3px_3px_0px_#ff00ff]"
               >
                 SUBMIT ROSTER
               </button>
@@ -905,6 +886,25 @@ export default function App() {
           )}
 
         </div>
+        <AnimatePresence>
+          {showMobileSubmit && (
+            <motion.div
+              initial={{ y: 72, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 72, opacity: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/95 border-t-2 border-brand-green px-4 py-3 backdrop-blur-sm"
+            >
+              <button
+                type="submit"
+                form="registration-inner-form"
+                className="w-full min-h-12 inline-flex items-center justify-center font-urban text-base bg-brand-green text-black border-2 border-black font-extrabold shadow-[4px_4px_0px_#ff00ff] active:translate-y-[2px]"
+              >
+                SUBMIT ROSTER
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* ROAD STREET FAQ SECTION (Interactive pure React collapsible state driven) */}
