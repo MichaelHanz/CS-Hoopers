@@ -47,24 +47,24 @@ const AnimatedError = ({ error, className = "text-xs text-brand-magenta font-mon
 };
 
 const HeroSection = React.memo(function HeroSection() {
-  const [mouseState, setMouseState] = useState({
-    x: 0,
-    y: 0,
-    relX: 0,
-    relY: 0,
-    dist: 0,
-    velocity: 0,
-    isHovered: false,
-  });
-  const [jitter, setJitter] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
-  const mouseRef = useRef({
+  const heroTitleRef = useRef<HTMLHeadingElement>(null);
+  const followerRef = useRef<HTMLDivElement>(null);
+  const glowRef = useRef<HTMLDivElement>(null);
+
+  const state = useRef({
     x: 0,
     y: 0,
     lastX: 0,
     lastY: 0,
     lastTime: 0,
     velocity: 0,
+    isHovered: false,
+    relX: 0,
+    relY: 0,
+    dist: 0,
+    jitterX: 0,
+    jitterY: 0
   });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
@@ -80,84 +80,107 @@ const HeroSection = React.memo(function HeroSection() {
     const dist = Math.sqrt(relX * relX + relY * relY);
 
     const now = Date.now();
-    const dt = now - mouseRef.current.lastTime;
-    let computedVelocity = mouseRef.current.velocity;
+    const dt = now - state.current.lastTime;
+    let computedVelocity = state.current.velocity;
 
     if (dt > 0) {
-      const dx = x - mouseRef.current.lastX;
-      const dy = y - mouseRef.current.lastY;
+      const dx = x - state.current.lastX;
+      const dy = y - state.current.lastY;
       const distanceMoved = Math.sqrt(dx * dx + dy * dy);
       const instSpeed = distanceMoved / dt;
       computedVelocity = computedVelocity * 0.4 + instSpeed * 0.6;
       computedVelocity = Math.min(computedVelocity, 8);
     }
 
-    mouseRef.current.lastX = x;
-    mouseRef.current.lastY = y;
-    mouseRef.current.lastTime = now;
-    mouseRef.current.velocity = computedVelocity;
-    mouseRef.current.x = x;
-    mouseRef.current.y = y;
-
-    setMouseState({
+    state.current = {
+      ...state.current,
+      lastX: x,
+      lastY: y,
+      lastTime: now,
+      velocity: computedVelocity,
       x,
       y,
       relX,
       relY,
       dist,
-      velocity: computedVelocity,
       isHovered: true,
-    });
+    };
+
+    if (followerRef.current) {
+      followerRef.current.style.opacity = '1';
+    }
   };
 
   const handleMouseLeave = () => {
-    mouseRef.current.velocity = 0;
-    setJitter({ x: 0, y: 0 });
-    setMouseState(prev => ({
-      ...prev,
-      relX: 0,
-      relY: 0,
-      dist: 0,
-      velocity: 0,
-      isHovered: false,
-    }));
+    state.current.velocity = 0;
+    state.current.relX = 0;
+    state.current.relY = 0;
+    state.current.dist = 0;
+    state.current.isHovered = false;
+    state.current.jitterX = 0;
+    state.current.jitterY = 0;
+    
+    if (followerRef.current) {
+      followerRef.current.style.opacity = '0';
+    }
+    if (heroTitleRef.current) {
+      heroTitleRef.current.style.transform = `translate(0px, 0px)`;
+    }
+    if (containerRef.current) {
+      containerRef.current.style.setProperty("--mouse-rel-x", "0");
+      containerRef.current.style.setProperty("--mouse-rel-y", "0");
+      containerRef.current.style.setProperty("--mouse-dist", "0");
+    }
   };
 
   useEffect(() => {
-    if (!mouseState.isHovered) return;
-
-    let active = true;
     let animId: number;
 
     const tick = () => {
-      if (!active) return;
+      const s = state.current;
+      
+      if (s.isHovered) {
+        s.velocity *= 0.92;
+        const vel = s.velocity;
 
-      mouseRef.current.velocity *= 0.92;
-      const vel = mouseRef.current.velocity;
+        if (vel > 1.2) {
+          s.jitterX = (Math.random() - 0.5) * (vel * 8);
+          s.jitterY = (Math.random() - 0.5) * (vel * 12);
+        } else {
+          s.jitterX = 0;
+          s.jitterY = 0;
+        }
 
-      if (vel > 1.2) {
-        const jX = (Math.random() - 0.5) * (vel * 8);
-        const jY = (Math.random() - 0.5) * (vel * 12);
-        setJitter({ x: jX, y: jY });
-      } else {
-        setJitter({ x: 0, y: 0 });
+        if (containerRef.current) {
+          containerRef.current.style.setProperty("--mouse-rel-x", s.relX.toString());
+          containerRef.current.style.setProperty("--mouse-rel-y", s.relY.toString());
+          containerRef.current.style.setProperty("--mouse-dist", s.dist.toString());
+        }
+
+        if (heroTitleRef.current) {
+          heroTitleRef.current.style.transform = `translate(${s.jitterX}px, ${s.jitterY}px)`;
+        }
+
+        if (followerRef.current && glowRef.current) {
+          followerRef.current.style.left = `${s.x}px`;
+          followerRef.current.style.top = `${s.y}px`;
+          const size = 140 + vel * 45;
+          followerRef.current.style.width = `${size}px`;
+          followerRef.current.style.height = `${size}px`;
+          
+          glowRef.current.style.background = vel > 1.2
+            ? 'radial-gradient(circle, rgba(255,0,255,0.22) 0%, rgba(0,255,255,0.18) 72%)'
+            : 'radial-gradient(circle, rgba(0,255,255,0.25) 0%, rgba(255,0,255,0.15) 70%)';
+        }
       }
-
-      setMouseState(prev => ({
-        ...prev,
-        velocity: vel
-      }));
 
       animId = requestAnimationFrame(tick);
     };
 
     animId = requestAnimationFrame(tick);
 
-    return () => {
-      active = false;
-      cancelAnimationFrame(animId);
-    };
-  }, [mouseState.isHovered]);
+    return () => cancelAnimationFrame(animId);
+  }, []);
 
   return (
     <section
@@ -166,34 +189,21 @@ const HeroSection = React.memo(function HeroSection() {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className="relative min-h-[90vh] flex flex-col justify-center items-center py-16 px-4 md:px-8 max-w-7xl mx-auto z-10 overflow-hidden introduction-section-interactive"
-      style={{
-        "--mouse-rel-x": mouseState.relX,
-        "--mouse-rel-y": mouseState.relY,
-        "--mouse-dist": mouseState.dist,
-      } as React.CSSProperties}
     >
-      {mouseState.isHovered && (
+      <div
+        ref={followerRef}
+        className="absolute pointer-events-none z-30 mix-blend-screen overflow-hidden"
+        style={{
+          opacity: 0,
+          transform: 'translate(-50%, -50%)',
+          transition: 'width 0.08s ease-out, height 0.08s ease-out, opacity 0.2s ease',
+        }}
+      >
         <div
-          className="absolute pointer-events-none z-30 mix-blend-screen overflow-hidden"
-          style={{
-            left: mouseState.x,
-            top: mouseState.y,
-            transform: 'translate(-50%, -50%)',
-            width: `${140 + mouseState.velocity * 45}px`,
-            height: `${140 + mouseState.velocity * 45}px`,
-            transition: 'width 0.08s ease-out, height 0.08s ease-out',
-          }}
-        >
-          <div
-            className="absolute rounded-full w-full h-full blur-2xl opacity-40 mix-blend-color-dodge transition-all duration-200"
-            style={{
-              background: mouseState.velocity > 1.2
-                ? 'radial-gradient(circle, rgba(255,0,255,0.22) 0%, rgba(0,255,255,0.18) 72%)'
-                : 'radial-gradient(circle, rgba(0,255,255,0.25) 0%, rgba(255,0,255,0.15) 70%)'
-            }}
-          />
-        </div>
-      )}
+          ref={glowRef}
+          className="absolute rounded-full w-full h-full blur-2xl opacity-40 mix-blend-color-dodge transition-all duration-200"
+        />
+      </div>
 
       <div id="intro-status" className="inline-flex items-center gap-2 px-5 py-2 bg-black border-2 border-brand-green mb-8 rotate-[-1deg] hover:rotate-1 transition-transform pointer-events-none">
         <span className="w-3 h-3 rounded-full bg-brand-green animate-ping"></span>
@@ -203,23 +213,23 @@ const HeroSection = React.memo(function HeroSection() {
       <div className="text-center w-full max-w-5xl mb-12 relative z-20 px-2">
         <h1
           id="hero-title"
+          ref={heroTitleRef}
           className="font-syne font-extrabold leading-none tracking-tighter italic cursor-default select-none uppercase"
           style={{
-            transform: `translate(${jitter.x}px, ${jitter.y}px)`,
             transition: 'transform 0.05s ease-out'
           }}
         >
           <span
-            className="text-brand-magenta block glitch-effect tracking-tight text-[10vw] sm:text-6xl md:text-8xl lg:text-[110px] xl:text-[130px]"
+            className="text-brand-magenta block glitch-effect tracking-tight text-[8vw] sm:text-5xl md:text-7xl lg:text-[80px] xl:text-[100px]"
             data-text="CS-HOOPERS"
           >
             CS-HOOPERS
           </span>
-          <span className="bg-brand-green text-black px-2.5 sm:px-8 py-1 sm:py-2.5 mx-1 sm:mx-2 my-2.5 sm:my-3 transform rotate-[1.5deg] inline-block font-urban text-[3.8vw] sm:text-3xl md:text-5xl lg:text-7xl tracking-normal shadow-[3px_3px_0px_#ff00ff] md:shadow-[6px_6px_0px_#ff00ff]">
+          <span className="bg-brand-green text-black px-2.5 sm:px-8 py-1 sm:py-2.5 mx-1 sm:mx-2 my-2.5 sm:my-3 transform rotate-[1.5deg] inline-block font-urban text-[3vw] sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl tracking-normal shadow-[3px_3px_0px_#ff00ff] md:shadow-[6px_6px_0px_#ff00ff]">
             COMPUTER SCIENCE
           </span>
           <span
-            className="text-white block tracking-tighter text-[7.8vw] sm:text-6xl md:text-8xl lg:text-[110px] xl:text-[130px] mt-2 glitch-effect leading-none"
+            className="text-white block tracking-tighter text-[6vw] sm:text-5xl md:text-7xl lg:text-[80px] xl:text-[100px] mt-2 glitch-effect leading-none"
             data-text="SPORTS DAY"
           >
             SPORTS DAY
@@ -283,6 +293,7 @@ const HeroSection = React.memo(function HeroSection() {
 export default function App() {
   const registrationSectionRef = useRef<HTMLElement>(null);
   const [showMobileSubmit, setShowMobileSubmit] = useState(false);
+  const [expandedPlayer, setExpandedPlayer] = useState<number>(0);
 
   // State for the Form
   const [formData, setFormData] = useState<TeamRegistration>({
@@ -504,6 +515,23 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
+  const calculateCompletedFields = () => {
+    let count = 0;
+    if (formData.teamName.trim()) count++;
+    if (formData.schoolFaculty.trim()) count++;
+    formData.players.forEach((p, idx) => {
+      if (p.name.trim()) count++;
+      if (p.matricNo.trim()) count++;
+      if (p.idPassport.trim()) count++;
+      if (p.school.trim()) count++;
+      if (idx === 0 && p.contactNumber?.trim()) count++;
+    });
+    return count;
+  };
+  
+  const completedFields = calculateCompletedFields();
+  const isFormComplete = completedFields === 15;
+
   return (
     <div id="app-root" className="bg-[#0A0A0A] text-white min-h-screen font-sans selection:bg-brand-green selection:text-black antialiased relative overflow-x-hidden">
       
@@ -626,7 +654,7 @@ export default function App() {
 
             <form 
               onSubmit={handleSubmit}
-              className="bg-[#111111]/95 backdrop-blur-md p-6 md:p-12 border-4 border-zinc-900 relative z-10 shadow-[12px_12px_0px_#000]"
+              className="bg-[#111111]/95 backdrop-blur-md p-4 md:p-12 border-4 border-zinc-900 relative z-10 shadow-[12px_12px_0px_#000]"
               id="registration-inner-form"
             >
               
@@ -652,12 +680,13 @@ export default function App() {
                     </label>
                     <input 
                       type="text"
-                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.teamName ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.teamName ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
                       value={formData.teamName}
                       onChange={(e) => handleTeamChange("teamName", e.target.value)}
                       placeholder="e.g. PHANTOM BALLERS"
                       name="teamName"
                       autoComplete="organization"
+                      autoCapitalize="characters"
                     />
                     <AnimatedError error={formErrors.teamName} />
                   </div>
@@ -669,12 +698,13 @@ export default function App() {
                     </label>
                     <input 
                       type="text"
-                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.schoolFaculty ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
+                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.schoolFaculty ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
                       value={formData.schoolFaculty}
                       onChange={(e) => handleTeamChange("schoolFaculty", e.target.value)}
                       placeholder="e.g. FACULTY OF COMPUTER SCIENCE"
                       name="schoolFaculty"
                       autoComplete="organization-title"
+                      autoCapitalize="characters"
                     />
                     <AnimatedError error={formErrors.schoolFaculty} />
                   </div>
@@ -703,11 +733,12 @@ export default function App() {
                 const playerNumString = player.number; // e.g. "PLAYER 01"
                 const errorPrefix = `p${index + 1}_`;
                 const isLeader = index === 0;
+                const isExpanded = expandedPlayer === index;
 
                 return (
                   <div 
                     key={player.id}
-                    className={`p-6 md:p-8 border-4 bg-[#0a0a0a]/90 relative overflow-hidden mb-8 shadow-[4px_4px_0px_#000] player-grid-card ${
+                    className={`p-4 md:p-8 border-4 bg-[#0a0a0a]/90 relative overflow-hidden mb-8 shadow-[4px_4px_0px_#000] player-grid-card ${
                       isLeader ? 'border-brand-magenta player-01-card' : 'border-zinc-850 player-other-card'
                     }`}
                   >
@@ -719,8 +750,11 @@ export default function App() {
                       </span>
                     </div>
 
-                    {/* Header line inside card */}
-                    <div className="flex justify-between items-center mb-6 pb-4 border-b border-zinc-900 relative z-10">
+                    {/* Header line inside card - NOW CLICKABLE AS ACCORDION TRIGGER */}
+                    <div 
+                      className={`flex justify-between items-center ${isExpanded ? 'mb-6 pb-4 border-b border-zinc-900' : ''} relative z-10 cursor-pointer`}
+                      onClick={() => setExpandedPlayer(isExpanded ? -1 : index)}
+                    >
                       <div className="flex items-center gap-3">
                         <span className="bg-zinc-900 border border-zinc-700 text-zinc-300 font-mono text-xs px-2.5 py-1 font-bold">
                           {playerNumString}
@@ -735,96 +769,115 @@ export default function App() {
                           </span>
                         )}
                       </div>
+                      <ChevronDown 
+                        className={`w-6 h-6 text-brand-magenta transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} 
+                      />
                     </div>
 
-                    {/* Inputs inside this specific player box */}
-                    {/* Stacks to single column in mobile and formats cleanly in desktop */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 font-sans">
-                      
-                      {/* Name input */}
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
-                          Student Name *
-                        </label>
-                        <input 
-                          type="text"
-                          value={player.name}
-                          onChange={(e) => handlePlayerChange(index, "name", e.target.value)}
-                          placeholder="FULL NAME"
-                          className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}name`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
-                          autoComplete={isLeader ? "name" : "off"}
-                        />
-                        <AnimatedError error={formErrors[`${errorPrefix}name`]} className="text-[11px] text-brand-magenta font-mono" />
-                      </div>
+                    <AnimatePresence initial={false}>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="overflow-hidden"
+                        >
+                          {/* Inputs inside this specific player box */}
+                          {/* Stacks to single column in mobile and formats cleanly in desktop */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 font-sans mt-4">
+                            
+                            {/* Name input */}
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                                Student Name *
+                              </label>
+                              <input 
+                                type="text"
+                                value={player.name}
+                                onChange={(e) => handlePlayerChange(index, "name", e.target.value)}
+                                placeholder="FULL NAME"
+                                className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}name`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                autoComplete={isLeader ? "name" : "off"}
+                                autoCapitalize="characters"
+                              />
+                              <AnimatedError error={formErrors[`${errorPrefix}name`]} className="text-[11px] text-brand-magenta font-mono" />
+                            </div>
 
-                      {/* Matric / Student ID input */}
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
-                          Matrics Number *
-                        </label>
-                        <input 
-                          type="text"
-                          value={player.matricNo}
-                          onChange={(e) => handlePlayerChange(index, "matricNo", e.target.value)}
-                          placeholder="STUDENT ID"
-                          className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}matricNo`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
-                          autoComplete="off"
-                        />
-                        <AnimatedError error={formErrors[`${errorPrefix}matricNo`]} className="text-[11px] text-brand-magenta font-mono" />
-                      </div>
+                            {/* Matric / Student ID input */}
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                                Matrics Number *
+                              </label>
+                              <input 
+                                type="text"
+                                value={player.matricNo}
+                                onChange={(e) => handlePlayerChange(index, "matricNo", e.target.value)}
+                                placeholder="STUDENT ID"
+                                className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}matricNo`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                autoComplete="off"
+                                autoCapitalize="characters"
+                              />
+                              <AnimatedError error={formErrors[`${errorPrefix}matricNo`]} className="text-[11px] text-brand-magenta font-mono" />
+                            </div>
 
-                      {/* ID / Passport input */}
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
-                          ID/Passport Number *
-                        </label>
-                        <input 
-                          type="text"
-                          value={player.idPassport}
-                          onChange={(e) => handlePlayerChange(index, "idPassport", e.target.value)}
-                          placeholder="ID NO."
-                          className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}idPassport`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
-                          autoComplete="off"
-                        />
-                        <AnimatedError error={formErrors[`${errorPrefix}idPassport`]} className="text-[11px] text-brand-magenta font-mono" />
-                      </div>
+                            {/* ID / Passport input */}
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                                ID/Passport Number *
+                              </label>
+                              <input 
+                                type="text"
+                                value={player.idPassport}
+                                onChange={(e) => handlePlayerChange(index, "idPassport", e.target.value)}
+                                placeholder="ID NO."
+                                className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}idPassport`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                autoComplete="off"
+                                autoCapitalize="characters"
+                              />
+                              <AnimatedError error={formErrors[`${errorPrefix}idPassport`]} className="text-[11px] text-brand-magenta font-mono" />
+                            </div>
 
-                      {/* School Field */}
-                      <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-1">
-                        <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
-                          School / Faculty *
-                        </label>
-                        <input 
-                          type="text"
-                          value={player.school}
-                          onChange={(e) => handlePlayerChange(index, "school", e.target.value)}
-                          placeholder="SCHOOL FACULTY NAME"
-                          className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}school`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
-                          autoComplete="organization"
-                        />
-                        <AnimatedError error={formErrors[`${errorPrefix}school`]} className="text-[11px] text-brand-magenta font-mono" />
-                      </div>
+                            {/* School Field */}
+                            <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-1">
+                              <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                                School / Faculty *
+                              </label>
+                              <input 
+                                type="text"
+                                value={player.school}
+                                onChange={(e) => handlePlayerChange(index, "school", e.target.value)}
+                                placeholder="SCHOOL FACULTY NAME"
+                                className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}school`] ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                autoComplete="organization"
+                                autoCapitalize="characters"
+                              />
+                              <AnimatedError error={formErrors[`${errorPrefix}school`]} className="text-[11px] text-brand-magenta font-mono" />
+                            </div>
 
-                      {/* Contact Number */}
-                      {isLeader && (
-                        <div className="flex flex-col gap-1.5 md:col-span-2">
-                          <label className="text-xs font-urban text-brand-green uppercase tracking-widest font-extrabold">
-                            Contact Number *
-                          </label>
-                          <input 
-                            type="tel"
-                            inputMode="tel"
-                            value={player.contactNumber || ""}
-                            onChange={(e) => handlePlayerChange(0, "contactNumber", e.target.value)}
-                            placeholder="+60..."
-                            className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.p1_contactNumber ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg]`}
-                            autoComplete="tel"
-                          />
-                          <AnimatedError error={formErrors.p1_contactNumber} className="text-[11px] text-brand-magenta font-mono" />
-                        </div>
+                            {/* Contact Number */}
+                            {isLeader && (
+                              <div className="flex flex-col gap-1.5 md:col-span-2">
+                                <label className="text-xs font-urban text-brand-green uppercase tracking-widest font-extrabold">
+                                  Contact Number *
+                                </label>
+                                <input 
+                                  type="tel"
+                                  inputMode="tel"
+                                  value={player.contactNumber || ""}
+                                  onChange={(e) => handlePlayerChange(0, "contactNumber", e.target.value)}
+                                  placeholder="+60..."
+                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.p1_contactNumber ? 'border-brand-magenta' : 'border-black focus:border-brand-green'} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                  autoComplete="tel"
+                                />
+                                <AnimatedError error={formErrors.p1_contactNumber} className="text-[11px] text-brand-magenta font-mono" />
+                              </div>
+                            )}
+
+                          </div>
+                        </motion.div>
                       )}
-
-                    </div>
+                    </AnimatePresence>
 
                   </div>
                 );
@@ -840,9 +893,12 @@ export default function App() {
               <button 
                 type="submit"
                 id="submit-roster-btn"
-                className="relative cursor-pointer w-full sm:w-auto min-h-12 inline-flex items-center justify-center font-urban text-lg px-10 py-5 bg-brand-green text-black border-2 border-black font-extrabold select-none shadow-[6px_6px_0px_#ff00ff] transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#ff00ff] active:translate-x-[3px] active:translate-y-[3px] active:shadow-[3px_3px_0px_#ff00ff]"
+                className={`relative w-full sm:w-auto min-h-12 inline-flex items-center justify-center font-urban text-lg px-10 py-5 border-2 font-extrabold select-none transition-all cursor-pointer
+                  ${isFormComplete 
+                    ? 'bg-brand-green text-black border-black shadow-[6px_6px_0px_#ff00ff] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#ff00ff] active:translate-x-[3px] active:translate-y-[3px] active:shadow-[3px_3px_0px_#ff00ff]' 
+                    : 'bg-zinc-800 text-zinc-400 border-zinc-700 shadow-[4px_4px_0px_#000] hover:bg-zinc-700'}`}
               >
-                SUBMIT ROSTER
+                {isFormComplete ? "SUBMIT ROSTER" : `FILL ${15 - completedFields} MORE FIELDS`}
               </button>
             </div>
 
@@ -893,14 +949,17 @@ export default function App() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 72, opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/95 border-t-2 border-brand-green px-4 py-3 backdrop-blur-sm"
+              className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/95 border-t-2 px-4 py-3 backdrop-blur-sm ${isFormComplete ? 'border-brand-green' : 'border-zinc-800'}`}
             >
               <button
                 type="submit"
                 form="registration-inner-form"
-                className="w-full min-h-12 inline-flex items-center justify-center font-urban text-base bg-brand-green text-black border-2 border-black font-extrabold shadow-[4px_4px_0px_#ff00ff] active:translate-y-[2px]"
+                className={`w-full min-h-12 inline-flex items-center justify-center font-urban text-base border-2 font-extrabold active:translate-y-[2px] transition-all
+                  ${isFormComplete 
+                    ? 'bg-brand-green text-black border-black shadow-[4px_4px_0px_#ff00ff]' 
+                    : 'bg-zinc-800 text-zinc-400 border-zinc-900 shadow-none'}`}
               >
-                SUBMIT ROSTER
+                {isFormComplete ? "SUBMIT ROSTER" : `FILL ${15 - completedFields} MORE FIELDS`}
               </button>
             </motion.div>
           )}
