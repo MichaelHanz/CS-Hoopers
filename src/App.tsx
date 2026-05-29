@@ -1,3 +1,5 @@
+import { db } from "./firebase";
+import { collection, addDoc } from "firebase/firestore";
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -427,7 +429,7 @@ export default function App() {
   };
 
   // Form validation & submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const errors: Record<string, string> = {};
 
@@ -470,21 +472,44 @@ export default function App() {
       return;
     }
 
-    // Success payload
-    console.log(
-      "SUCCESSFUL REGISTRATION PAYLOAD:",
-      JSON.stringify(formData, null, 2),
-    );
     setFormErrors({});
-    setSubmittedData(formData);
 
-    // Scroll automatically to success panel
-    setTimeout(() => {
-      const successPanel = document.getElementById("success-panel");
-      if (successPanel) {
-        successPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+    try {
+      // 1. Prepare your structured payload along with a server-ready timestamp
+      const rosterPayload = {
+        ...formData,
+        timestamp: new Date().toISOString(),
+      };
+
+      const rostersCollection = collection(db, "rosters");
+
+      // 3. Send the document to Firebase over the network and wait for confirmation
+      const docRef = await addDoc(rostersCollection, rosterPayload);
+      console.log("SUCCESSFUL REGISTRATION PAYLOAD LOCKED WITH ID:", docRef.id);
+
+      // 4. Update local state triggers now that the write was successful
+      setSubmittedData(formData);
+
+      // 5. Scroll automatically to your success panel
+      setTimeout(() => {
+        const successPanel = document.getElementById("success-panel");
+        if (successPanel) {
+          successPanel.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 150);
+    } catch (error) {
+      console.error("CRITICAL DATABASE CONNECTION ERROR:", error);
+      // Option: You can set a global form error state here to inform the user
+      setFormErrors({
+        submit:
+          "Connection to the arena vault timed out. Please check your network connection.",
+      });
+
+      const formElement = document.getElementById("registration-section");
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: "smooth" });
       }
-    }, 150);
+    }
   };
 
   const handleResetForm = () => {
@@ -1020,32 +1045,57 @@ export default function App() {
           {submittedData && (
             <div
               id="success-panel"
-              className="mt-12 bg-zinc-950 border-4 border-brand-green p-6 md:p-10 shadow-[10px_10px_0px_#000] scroll-mt-24"
+              className="mt-12 bg-[#0A0A0A] border-4 border-brand-green p-6 md:p-10 shadow-[10px_10px_0px_#000] scroll-mt-24 relative overflow-hidden"
             >
-              <div className="flex items-center gap-4 mb-6 pb-4 border-b border-zinc-800">
-                <CheckCircle2 className="w-8 h-8 text-brand-green shrink-0" />
+              {/* Decorative background watermark */}
+              <div className="absolute -top-4 -right-4 p-4 opacity-5 pointer-events-none select-none">
+                <span className="text-9xl font-black font-stencil">3v3</span>
+              </div>
+
+              <div className="flex items-center gap-4 mb-8 pb-4 border-b-2 border-zinc-800 relative z-10">
+                <CheckCircle2 className="w-10 h-10 text-brand-green shrink-0" />
                 <div>
-                  <h3 className="font-urban text-xl text-brand-green tracking-tight uppercase">
-                    REGISTRATION SECURED
+                  <h3 className="font-urban text-2xl text-brand-green tracking-tight uppercase font-black">
+                    ARENA ACCESS GRANTED
                   </h3>
-                  <p className="text-zinc-400 text-xs font-mono uppercase">
-                    CS-HOOPERS SQUAD ROSTER LOGGED SUCCESSFULLY
+                  <p className="text-zinc-400 text-sm font-mono uppercase tracking-wider">
+                    OFFICIAL SQUAD ROSTER LOCKED IN
                   </p>
                 </div>
               </div>
 
-              <div className="p-4 bg-[#0A0A0A] border border-zinc-800 mb-6 rounded-none">
-                <h4 className="text-xs font-stencil mb-2 text-brand-magenta tracking-widest uppercase">
-                  REGISTRATION PAYLOAD OUTPUT
+              {/* Stylized Roster Ticket instead of JSON */}
+              <div className="bg-[#111] border-2 border-brand-magenta p-6 mb-8 relative z-10">
+                <h4 className="text-sm font-mono mb-1 text-brand-magenta tracking-widest uppercase">
+                  Squad Designation
                 </h4>
-                <pre className="text-xs text-brand-green font-mono overflow-x-auto max-h-60 p-2 whitespace-pre">
-                  {JSON.stringify(submittedData, null, 2)}
-                </pre>
+                <h2 className="text-4xl sm:text-5xl font-black font-stencil text-white uppercase mb-6 tracking-wide break-words">
+                  {submittedData.teamName}
+                </h2>
+
+                <div className="space-y-4">
+                  {submittedData.players.map((player, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col sm:flex-row sm:justify-between sm:items-end border-b border-zinc-800 pb-2"
+                    >
+                      <div className="font-mono text-xs text-zinc-500 uppercase mb-1 sm:mb-0">
+                        {index === 0
+                          ? "TEAM LEADER (01)"
+                          : `ROSTER PLAYER (0${index + 1})`}
+                      </div>
+                      <div className="font-urban text-xl text-white uppercase font-bold tracking-wide">
+                        {player.name}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#111] p-4 border-l-4 border-brand-magenta">
-                <div className="text-xs text-zinc-400 font-sans">
-                  <span className="font-bold text-white block">
+              {/* Next Objective Block */}
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-6 bg-[#111] p-5 border-l-4 border-brand-green relative z-10">
+                <div className="text-sm text-zinc-400 font-sans">
+                  <span className="font-black text-brand-green block mb-1 uppercase tracking-wider text-base">
                     Next Objective:
                   </span>
                   Save your student IDs, keep checking your leader's inbox, and
@@ -1053,7 +1103,7 @@ export default function App() {
                 </div>
                 <button
                   onClick={handleResetForm}
-                  className="px-5 py-2 hover:bg-zinc-900 border border-zinc-700 hover:text-white text-zinc-400 text-xs uppercase font-urban shrink-0 transition-colors"
+                  className="px-6 py-4 bg-zinc-900 border-2 border-zinc-700 hover:border-brand-magenta hover:text-brand-magenta text-white text-xs uppercase font-black font-urban shrink-0 transition-all shadow-[4px_4px_0px_#000] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#ff00ff]"
                 >
                   Register Another Team
                 </button>
