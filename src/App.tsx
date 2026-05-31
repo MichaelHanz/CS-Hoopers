@@ -420,7 +420,7 @@ export default function App() {
     value: string,
   ) => {
     setFormData((prev) => {
-      const updatedPlayers = [...prev.players] as [Player, Player, Player];
+      const updatedPlayers = [...prev.players] as Player[];
       updatedPlayers[playerIndex] = {
         ...updatedPlayers[playerIndex],
         [field]: value,
@@ -912,17 +912,25 @@ export default function App() {
                   return (
                     <div
                       key={player.id}
-                      className={`p-4 md:p-8 border-4 bg-[#0a0a0a]/90 relative overflow-hidden mb-8 shadow-[4px_4px_0px_#000] player-grid-card ${
+                      className={`p-4 md:p-8 border-4 bg-[#0a0a0a]/90 relative overflow-hidden mb-8 player-grid-card transition-all duration-300 ${
                         isLeader
-                          ? "border-brand-magenta player-01-card"
+                          ? "border-brand-magenta shadow-[4px_4px_0px_#ff00ff] player-01-card"
                           : player.isOptional
-                            ? "border-zinc-800 border-dashed" // Gives the optional sub a cool dashed border
-                            : "border-zinc-850 player-other-card"
+                            ? isExpanded
+                              ? "border-[#00ffff] border-dashed shadow-[0_0_20px_rgba(0,255,255,0.5),inset_0_0_15px_rgba(0,255,255,0.2)]" // Added inner and outer pure cyan glow
+                              : "border-zinc-800 border-dashed shadow-[4px_4px_0px_#27272a]"
+                            : "border-zinc-850 shadow-[4px_4px_0px_#000] player-other-card"
                       }`}
                     >
                       {/* Aligned Large Visual Numeric Badge */}
                       <div className="absolute right-4 top-2 select-none pointer-events-none">
-                        <span className="font-urban text-7xl md:text-9xl text-zinc-900 tracking-tighter opacity-70 block font-outline">
+                        <span
+                          className={`font-urban text-7xl md:text-9xl tracking-tighter block transition-all duration-300 ${
+                            isExpanded && player.isOptional
+                              ? "text-transparent [-webkit-text-stroke:3px_#00ffff] opacity-100 drop-shadow-[0_0_25px_rgba(0,255,255,0.9)]"
+                              : "font-outline text-zinc-900 opacity-70"
+                          }`}
+                        >
                           0{index + 1}
                         </span>
                       </div>
@@ -947,7 +955,7 @@ export default function App() {
                               isLeader
                                 ? "bg-brand-magenta italic rotate-[-1deg]"
                                 : player.isOptional
-                                  ? "bg-zinc-500 rotate-[1deg]" // Greyed out badge for optional sub
+                                  ? "bg-cyan-400 rotate-[1deg]" // Cyan badge to match the new glow
                                   : "bg-brand-green rotate-[1deg]"
                             }`}
                           >
@@ -956,16 +964,16 @@ export default function App() {
 
                           {/* EXTRA VISUAL CUE FOR OPTIONAL PLAYER */}
                           {player.isOptional && (
-                            <span className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase border border-zinc-800 px-2 py-0.5">
+                            <span className="text-[10px] text-zinc-400 font-mono tracking-widest uppercase border border-zinc-800 px-2 py-0.5">
                               Leave Blank to Skip
                             </span>
                           )}
                         </div>
 
                         <ChevronDown
-                          className={`w-6 h-6 text-brand-magenta transition-transform duration-300 ${
+                          className={`w-6 h-6 transition-transform duration-300 ${
                             isExpanded ? "rotate-180" : ""
-                          }`}
+                          } ${player.isOptional ? "text-cyan-400" : "text-brand-magenta"}`}
                         />
                       </div>
 
@@ -981,7 +989,9 @@ export default function App() {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 font-sans mt-4">
                               {/* Name input */}
                               <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold flex justify-between">
+                                <label
+                                  className={`text-xs font-urban uppercase tracking-widest font-extrabold flex justify-between ${player.isOptional ? "text-cyan-400" : "text-brand-magenta"}`}
+                                >
                                   Student Name
                                 </label>
                                 <input
@@ -998,8 +1008,8 @@ export default function App() {
                                   className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${
                                     formErrors[`${errorPrefix}name`]
                                       ? "border-brand-magenta"
-                                      : "border-black focus:border-brand-green"
-                                  } outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                      : `border-black focus:${player.isOptional ? "border-cyan-400" : "border-brand-green"}`
+                                  } outline-none focus:ring-4 ${player.isOptional ? "focus:ring-cyan-400/30" : "focus:ring-brand-green/30"} text-sm skew-x-[-0.5deg] uppercase`}
                                   autoComplete={isLeader ? "name" : "off"}
                                   autoCapitalize="characters"
                                 />
@@ -1011,7 +1021,9 @@ export default function App() {
 
                               {/* Matric / Student ID input */}
                               <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                                <label
+                                  className={`text-xs font-urban uppercase tracking-widest font-extrabold ${player.isOptional ? "text-cyan-400" : "text-brand-magenta"}`}
+                                >
                                   Matrics Number
                                 </label>
                                 <input
@@ -1028,8 +1040,8 @@ export default function App() {
                                   className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${
                                     formErrors[`${errorPrefix}matricNo`]
                                       ? "border-brand-magenta"
-                                      : "border-black focus:border-brand-green"
-                                  } outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                      : `border-black focus:${player.isOptional ? "border-cyan-400" : "border-brand-green"}`
+                                  } outline-none focus:ring-4 ${player.isOptional ? "focus:ring-cyan-400/30" : "focus:ring-brand-green/30"} text-sm skew-x-[-0.5deg] uppercase`}
                                   autoComplete="off"
                                   autoCapitalize="characters"
                                 />
@@ -1041,7 +1053,9 @@ export default function App() {
 
                               {/* School Field */}
                               <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-1">
-                                <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                                <label
+                                  className={`text-xs font-urban uppercase tracking-widest font-extrabold ${player.isOptional ? "text-cyan-400" : "text-brand-magenta"}`}
+                                >
                                   School / Pusat Pengajian
                                 </label>
                                 <input
@@ -1058,8 +1072,8 @@ export default function App() {
                                   className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${
                                     formErrors[`${errorPrefix}school`]
                                       ? "border-brand-magenta"
-                                      : "border-black focus:border-brand-green"
-                                  } outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                      : `border-black focus:${player.isOptional ? "border-cyan-400" : "border-brand-green"}`
+                                  } outline-none focus:ring-4 ${player.isOptional ? "focus:ring-cyan-400/30" : "focus:ring-brand-green/30"} text-sm skew-x-[-0.5deg] uppercase`}
                                   autoComplete="organization"
                                   autoCapitalize="characters"
                                 />
@@ -1069,7 +1083,7 @@ export default function App() {
                                 />
                               </div>
 
-                              {/* Contact Number (Leader Only) */}
+                              {/* Contact Number (Leader Only) - Left unchanged as Leader is never optional */}
                               {isLeader && (
                                 <div className="flex flex-col gap-1.5 md:col-span-2">
                                   <label className="text-xs font-urban text-brand-green uppercase tracking-widest font-extrabold">
@@ -1190,8 +1204,7 @@ export default function App() {
                   <span className="font-black text-brand-green block mb-1 uppercase tracking-wider text-base">
                     Next Objective:
                   </span>
-                  Save your student IDs, keep checking your leader's inbox, and
-                  train at UTM Court A. Live brackets drop shortly.
+                  Santai, minum Teh Tarik and lets ball soon🏀🏀🏀🏀.
                 </div>
                 <button
                   onClick={handleResetForm}
