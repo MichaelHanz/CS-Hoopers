@@ -22,4 +22,4 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
 // Initialize Cloud Firestore and export it for App.tsx to use
-export const db = getFirestore(app); // <-- ADDED THIS
+export const db = getFirestore(app);

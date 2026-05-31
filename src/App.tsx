@@ -19,15 +19,15 @@ interface Player {
   role: string;
   name: string;
   matricNo: string;
-  idPassport: string;
   school: string;
   contactNumber?: string; // Only for Player 01 (Team Leader)
+  isOptional?: boolean; // For substitutes flaging
 }
 
 interface TeamRegistration {
   teamName: string;
   schoolFaculty: string;
-  players: [Player, Player, Player];
+  players: Player[];
 }
 
 const AnimatedError = ({
@@ -344,7 +344,6 @@ export default function App() {
         role: "TEAM LEADER",
         name: "",
         matricNo: "",
-        idPassport: "",
         school: "",
         contactNumber: "",
       },
@@ -354,7 +353,6 @@ export default function App() {
         role: "ACTIVE ROSTER",
         name: "",
         matricNo: "",
-        idPassport: "",
         school: "",
       },
       {
@@ -363,8 +361,24 @@ export default function App() {
         role: "ACTIVE ROSTER",
         name: "",
         matricNo: "",
-        idPassport: "",
         school: "",
+      },
+      {
+        id: "p4",
+        number: "PLAYER 04",
+        role: "MANDATORY SUB",
+        name: "",
+        matricNo: "",
+        school: "",
+      },
+      {
+        id: "p5",
+        number: "PLAYER 05",
+        role: "OPTIONAL SUB",
+        name: "",
+        matricNo: "",
+        school: "",
+        isOptional: true,
       },
     ],
   });
@@ -444,17 +458,28 @@ export default function App() {
     // Validate players
     formData.players.forEach((player, idx) => {
       const i = idx + 1;
+
+      // Check if the entire player slot is untouched/empty
+      const isSlotEmpty =
+        !player.name.trim() && !player.matricNo.trim() && !player.school.trim();
+
+      // Condition: If it is an optional sub and they left it completely blank, skip validation
+      if (player.isOptional && isSlotEmpty) {
+        return;
+      }
+
+      // Otherwise, validate the slot strictly (Mandatory players, or filled-out Optional players)
       if (!player.name.trim()) {
         errors[`p${i}_name`] = `Player 0${i} Name is required`;
       }
       if (!player.matricNo.trim()) {
-        errors[`p${i}_matricNo`] = `Player 0${i} Metric/Student ID is required`;
+        errors[`p${i}_matricNo`] = `Player 0${i} Matric/Student ID is required`;
       }
       if (!player.school.trim()) {
         errors[`p${i}_school`] = `Player 0${i} School is required`;
       }
 
-      // Player 01 validation for Contact
+      // Player 01 validation for Contact (Team Leader)
       if (idx === 0) {
         if (!player.contactNumber || !player.contactNumber.trim()) {
           errors.p1_contactNumber = "Team Leader Contact Number is required";
@@ -464,7 +489,6 @@ export default function App() {
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      // Scroll to the error banner or form
       const formElement = document.getElementById("registration-section");
       if (formElement) {
         formElement.scrollIntoView({ behavior: "smooth" });
@@ -475,22 +499,17 @@ export default function App() {
     setFormErrors({});
 
     try {
-      // 1. Prepare your structured payload along with a server-ready timestamp
       const rosterPayload = {
         ...formData,
         timestamp: new Date().toISOString(),
       };
 
       const rostersCollection = collection(db, "rosters");
-
-      // 3. Send the document to Firebase over the network and wait for confirmation
       const docRef = await addDoc(rostersCollection, rosterPayload);
       console.log("SUCCESSFUL REGISTRATION PAYLOAD LOCKED WITH ID:", docRef.id);
 
-      // 4. Update local state triggers now that the write was successful
       setSubmittedData(formData);
 
-      // 5. Scroll automatically to your success panel
       setTimeout(() => {
         const successPanel = document.getElementById("success-panel");
         if (successPanel) {
@@ -499,7 +518,6 @@ export default function App() {
       }, 150);
     } catch (error) {
       console.error("CRITICAL DATABASE CONNECTION ERROR:", error);
-      // Option: You can set a global form error state here to inform the user
       setFormErrors({
         submit:
           "Connection to the arena vault timed out. Please check your network connection.",
@@ -523,7 +541,6 @@ export default function App() {
           role: "TEAM LEADER",
           name: "",
           matricNo: "",
-          idPassport: "",
           school: "",
           contactNumber: "",
         },
@@ -533,7 +550,6 @@ export default function App() {
           role: "ACTIVE ROSTER",
           name: "",
           matricNo: "",
-          idPassport: "",
           school: "",
         },
         {
@@ -542,13 +558,35 @@ export default function App() {
           role: "ACTIVE ROSTER",
           name: "",
           matricNo: "",
-          idPassport: "",
           school: "",
+        },
+        {
+          id: "p4",
+          number: "PLAYER 04",
+          role: "MANDATORY SUB",
+          name: "",
+          matricNo: "",
+          school: "",
+        },
+        {
+          id: "p5",
+          number: "PLAYER 05",
+          role: "OPTIONAL SUB",
+          name: "",
+          matricNo: "",
+          school: "",
+          isOptional: true, // Crucial flag for the validation engine
         },
       ],
     });
     setSubmittedData(null);
     setFormErrors({});
+
+    // Smoothly scroll the user back to the top of the registration section
+    const formElement = document.getElementById("registration-section");
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   // FAQ mock data
@@ -588,22 +626,44 @@ export default function App() {
     return () => observer.disconnect();
   }, []);
 
-  const calculateCompletedFields = () => {
-    let count = 0;
-    if (formData.teamName.trim()) count++;
-    if (formData.schoolFaculty.trim()) count++;
+  const calculateFieldStatus = () => {
+    let completed = 0;
+    let target = 0;
+
+    // 1. Base Team Info
+    target += 2; // Team Name + School/Faculty
+    if (formData.teamName.trim()) completed++;
+    if (formData.schoolFaculty.trim()) completed++;
+
+    // 2. Dynamic Player Info
     formData.players.forEach((p, idx) => {
-      if (p.name.trim()) count++;
-      if (p.matricNo.trim()) count++;
-      if (p.idPassport.trim()) count++;
-      if (p.school.trim()) count++;
-      if (idx === 0 && p.contactNumber?.trim()) count++;
+      const isSlotEmpty =
+        !p.name.trim() && !p.matricNo.trim() && !p.school.trim();
+
+      // If it's an optional sub and completely blank, it adds nothing to the target
+      if (p.isOptional && isSlotEmpty) {
+        return;
+      }
+
+      // Calculate how many fields this specific player SHOULD have
+      let expectedForThisPlayer = 3; // Name, Matric, School
+      if (idx === 0) expectedForThisPlayer = 4; // Leader has Contact Number
+
+      target += expectedForThisPlayer; // Dynamically raise the required denominator
+
+      // Tally the fields they actually filled out
+      if (p.name.trim()) completed++;
+      if (p.matricNo.trim()) completed++;
+      if (p.school.trim()) completed++;
+      if (idx === 0 && p.contactNumber?.trim()) completed++;
     });
-    return count;
+
+    return { completed, target };
   };
 
-  const completedFields = calculateCompletedFields();
-  const isFormComplete = completedFields === 12;
+  const { completed, target } = calculateFieldStatus();
+  const isFormComplete = completed === target;
+  const remainingFields = target - completed;
   return (
     <div
       id="app-root"
@@ -855,10 +915,12 @@ export default function App() {
                       className={`p-4 md:p-8 border-4 bg-[#0a0a0a]/90 relative overflow-hidden mb-8 shadow-[4px_4px_0px_#000] player-grid-card ${
                         isLeader
                           ? "border-brand-magenta player-01-card"
-                          : "border-zinc-850 player-other-card"
+                          : player.isOptional
+                            ? "border-zinc-800 border-dashed" // Gives the optional sub a cool dashed border
+                            : "border-zinc-850 player-other-card"
                       }`}
                     >
-                      {/* Aligned Large Visual Numeric Badge so users clearly spot the player number (player 03 or player 02) */}
+                      {/* Aligned Large Visual Numeric Badge */}
                       <div className="absolute right-4 top-2 select-none pointer-events-none">
                         <span className="font-urban text-7xl md:text-9xl text-zinc-900 tracking-tighter opacity-70 block font-outline">
                           0{index + 1}
@@ -867,27 +929,43 @@ export default function App() {
 
                       {/* Header line inside card - NOW CLICKABLE AS ACCORDION TRIGGER */}
                       <div
-                        className={`flex justify-between items-center ${isExpanded ? "mb-6 pb-4 border-b border-zinc-900" : ""} relative z-10 cursor-pointer`}
+                        className={`flex justify-between items-center ${
+                          isExpanded ? "mb-6 pb-4 border-b border-zinc-900" : ""
+                        } relative z-10 cursor-pointer`}
                         onClick={() =>
                           setExpandedPlayer(isExpanded ? -1 : index)
                         }
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-wrap">
                           <span className="bg-zinc-900 border border-zinc-700 text-zinc-300 font-mono text-xs px-2.5 py-1 font-bold">
                             {playerNumString}
                           </span>
-                          {isLeader ? (
-                            <span className="relative inline-block bg-brand-magenta text-black font-urban text-[11px] px-3 py-1 tracking-tight italic font-black shadow-[2px_2px_0px_#000] rotate-[-1deg]">
-                              TEAM LEADER
-                            </span>
-                          ) : (
-                            <span className="relative inline-block bg-brand-green text-black font-urban text-[11px] px-3 py-1 tracking-tight uppercase font-black shadow-[2px_2px_0px_#000] rotate-[1deg]">
-                              ACTIVE ROSTER
+
+                          {/* DYNAMIC ROLE BADGE */}
+                          <span
+                            className={`relative inline-block text-black font-urban text-[11px] px-3 py-1 tracking-tight uppercase font-black shadow-[2px_2px_0px_#000] ${
+                              isLeader
+                                ? "bg-brand-magenta italic rotate-[-1deg]"
+                                : player.isOptional
+                                  ? "bg-zinc-500 rotate-[1deg]" // Greyed out badge for optional sub
+                                  : "bg-brand-green rotate-[1deg]"
+                            }`}
+                          >
+                            {player.role}
+                          </span>
+
+                          {/* EXTRA VISUAL CUE FOR OPTIONAL PLAYER */}
+                          {player.isOptional && (
+                            <span className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase border border-zinc-800 px-2 py-0.5">
+                              Leave Blank to Skip
                             </span>
                           )}
                         </div>
+
                         <ChevronDown
-                          className={`w-6 h-6 text-brand-magenta transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`}
+                          className={`w-6 h-6 text-brand-magenta transition-transform duration-300 ${
+                            isExpanded ? "rotate-180" : ""
+                          }`}
                         />
                       </div>
 
@@ -900,12 +978,10 @@ export default function App() {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            {/* Inputs inside this specific player box */}
-                            {/* Stacks to single column in mobile and formats cleanly in desktop */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 font-sans mt-4">
                               {/* Name input */}
                               <div className="flex flex-col gap-1.5">
-                                <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold">
+                                <label className="text-xs font-urban text-brand-magenta uppercase tracking-widest font-extrabold flex justify-between">
                                   Student Name
                                 </label>
                                 <input
@@ -919,7 +995,11 @@ export default function App() {
                                     )
                                   }
                                   placeholder="FULL NAME"
-                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}name`] ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${
+                                    formErrors[`${errorPrefix}name`]
+                                      ? "border-brand-magenta"
+                                      : "border-black focus:border-brand-green"
+                                  } outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
                                   autoComplete={isLeader ? "name" : "off"}
                                   autoCapitalize="characters"
                                 />
@@ -945,7 +1025,11 @@ export default function App() {
                                     )
                                   }
                                   placeholder="243******"
-                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}matricNo`] ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${
+                                    formErrors[`${errorPrefix}matricNo`]
+                                      ? "border-brand-magenta"
+                                      : "border-black focus:border-brand-green"
+                                  } outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
                                   autoComplete="off"
                                   autoCapitalize="characters"
                                 />
@@ -971,7 +1055,11 @@ export default function App() {
                                     )
                                   }
                                   placeholder="School of Computer Science"
-                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors[`${errorPrefix}school`] ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${
+                                    formErrors[`${errorPrefix}school`]
+                                      ? "border-brand-magenta"
+                                      : "border-black focus:border-brand-green"
+                                  } outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
                                   autoComplete="organization"
                                   autoCapitalize="characters"
                                 />
@@ -981,7 +1069,7 @@ export default function App() {
                                 />
                               </div>
 
-                              {/* Contact Number */}
+                              {/* Contact Number (Leader Only) */}
                               {isLeader && (
                                 <div className="flex flex-col gap-1.5 md:col-span-2">
                                   <label className="text-xs font-urban text-brand-green uppercase tracking-widest font-extrabold">
@@ -999,7 +1087,11 @@ export default function App() {
                                       )
                                     }
                                     placeholder="+60123456789"
-                                    className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.p1_contactNumber ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                                    className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${
+                                      formErrors.p1_contactNumber
+                                        ? "border-brand-magenta"
+                                        : "border-black focus:border-brand-green"
+                                    } outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
                                     autoComplete="tel"
                                   />
                                   <AnimatedError
@@ -1035,7 +1127,7 @@ export default function App() {
                 >
                   {isFormComplete
                     ? "SUBMIT ROSTER"
-                    : `FILL ${12 - completedFields} MORE FIELDS`}
+                    : `FILL ${remainingFields} MORE FIELDS`}
                 </button>
               </div>
             </form>
@@ -1118,7 +1210,9 @@ export default function App() {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 72, opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/95 border-t-2 px-4 py-3 backdrop-blur-sm ${isFormComplete ? "border-brand-green" : "border-zinc-800"}`}
+              className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/95 border-t-2 px-4 py-3 backdrop-blur-sm ${
+                isFormComplete ? "border-brand-green" : "border-zinc-800"
+              }`}
             >
               <button
                 type="submit"
@@ -1132,7 +1226,7 @@ export default function App() {
               >
                 {isFormComplete
                   ? "SUBMIT ROSTER"
-                  : `FILL ${12 - completedFields} MORE FIELDS`}
+                  : `FILL ${remainingFields} MORE FIELDS`}
               </button>
             </motion.div>
           )}
