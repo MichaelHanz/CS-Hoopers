@@ -365,6 +365,25 @@ body {
   }
 
   #registration-section {
-    padding-bottom: 6.5rem;
+    padding-bottom: 4rem;
   }
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+  /* Optional: Pause the scrolling when a user hovers over the logos */
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
 }

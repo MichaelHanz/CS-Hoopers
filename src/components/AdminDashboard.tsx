@@ -154,13 +154,23 @@ export default function AdminDashboard() {
                   </div>
 
                   {/* Added pr-20 to ensure long team names don't crash into the date badge */}
-                  <div className="mb-4 pr-20">
-                    <h3 className="font-urban text-xl sm:text-2xl uppercase font-black text-white break-words">
-                      {team.teamName}
-                    </h3>
-                    <p className="text-zinc-400 font-mono text-xs break-words">
-                      {team.schoolFaculty}
-                    </p>
+                  <div className="mb-5 pr-20 flex flex-col gap-3">
+                    <div>
+                      <span className="text-[10px] text-brand-magenta font-mono uppercase block mb-1 tracking-widest">
+                        Team Name :
+                      </span>
+                      <h3 className="font-urban text-2xl sm:text-3xl uppercase font-black text-white break-words leading-none">
+                        {team.teamName}
+                      </h3>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-zinc-500 font-mono uppercase block mb-0.5 tracking-widest">
+                        School / Pusat Pengajian :
+                      </span>
+                      <p className="text-zinc-400 font-mono text-sm break-words">
+                        {team.schoolFaculty}
+                      </p>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 border-t border-zinc-900 pt-4 mt-4">
