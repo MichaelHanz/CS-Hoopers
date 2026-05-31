@@ -913,8 +913,8 @@ export default function App() {
             {/* Hand-drawn/graffiti paint brush looking thick underline like in image */}
             <div className="h-4 w-48 bg-brand-magenta mx-auto my-4 transform rotate-[-2.5deg] skew-x-[-10deg] opacity-90 shadow-[2px_2px_0px_#000]"></div>
             <p className="font-sans text-zinc-400 max-w-md mx-auto text-sm md:text-base">
-              Lock in your 3-member team. Finalize your roster for the 3v3
-              battle. No subs. No excuses.
+              Lock in your 3-member + 2 substitutes in the team. Finalize your
+              roster for the 3v3 battle. No excuses.
             </p>
           </div>
 
