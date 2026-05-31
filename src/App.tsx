@@ -265,7 +265,7 @@ const HeroSection = React.memo(function HeroSection() {
         <p className="font-sans text-base md:text-lg text-zinc-300 leading-relaxed">
           The premier collegiate basketball tournament where data meets the
           asphalt. Assemble your squad, register your roster, and prepare for
-          high-stakes urban competition.
+          some low-cortisol streetball.
         </p>
       </div>
 
@@ -592,19 +592,19 @@ export default function App() {
   // FAQ mock data
   const faqs = [
     {
-      question: "ELIGIBILITY RULES?",
+      question: "Who is eligible to join the tournament?",
       answer:
-        "Valid university or college students only. All registered athletes must bring their physical active Student ID to the venue on tournament days. No ID, no entry onto the court. Strict academic verification applies.",
+        "🎓 Only currently enrolled Computer Science students at USM are allowed to step onto the court and compete!",
     },
     {
-      question: "UNIFORM CODE?",
+      question: "What is the official dress code?",
       answer:
-        "Teams must sport matching color jerseys. High-contrast numbers must be permanently visible on either the front or the back of the active tops. We strongly suggest rugged, gritty sportswear built to survive real street play.",
+        "👕 You have total freedom to wear whatever you want to hoop in, as long as the attire stays modest and respectful!",
     },
     {
-      question: "GAME SCHEDULE?",
+      question: "Where can I find the game schedule?",
       answer:
-        "Full elimination brackets will drop exactly 48 hours after user registration windows officially lock. Standard tournament slots are rigid with zero rescheduling options. Check-in is precisely 30 minutes before your tip-off.",
+        "📅 The official match brackets and tip-off times will be dropped exclusively inside the registered players' Whatsapp group chat!",
     },
   ];
 
@@ -704,9 +704,9 @@ export default function App() {
               className="font-urban text-lg md:text-2xl tracking-tighter text-brand-green italic leading-none"
               data-text="MPP_CS_CREW_USM"
             >
-              MPP CS
+              CS Sports Day
               <span className="text-brand-magenta block text-xs md:text-sm tracking-widest font-bold">
-                CREW USM
+                Hoopers Assemble!
               </span>
             </div>
           </a>
@@ -1296,7 +1296,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center gap-10">
           <div className="text-center md:text-left">
             <h2 className="font-urban text-2xl text-white italic tracking-tighter uppercase">
-              MPP <span className="text-brand-magenta">CS CREW </span>
+              CS <span className="text-brand-magenta">Sports Day</span>
             </h2>
             <p className="text-xs text-zinc-500 font-mono tracking-widest uppercase mt-2">
               3v3 Basketball Tournament
