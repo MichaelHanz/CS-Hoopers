@@ -340,63 +340,63 @@ const HeroSection = React.memo(function HeroSection() {
         {/* 3. THE SCROLLING TRACK (No longer holds the animation class) */}
         <div className="flex items-center">
           {/* FIRST SET OF LOGOS (Animation applied directly here. flex-wrap removed) */}
-          <div className="flex gap-x-6 md:gap-x-24 items-center gap-y-6 px-6 md:px-12 shrink-0 animate-marquee group-hover:[animation-play-state:paused]">
+          <div className="flex gap-x-6 md:gap-x-24 items-center gap-y-6 px-6 md:px-12 shrink-0 animate-marquee">
             <img
               src="/Asset-BHEPA.png"
               alt="BHEPA"
-              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0 hover:scale-105 transition-all duration-300"
+              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0"
             />
             <img
               src="/Asset-USM.png"
               alt="USM"
-              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0 hover:scale-105 transition-all duration-300"
+              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0"
             />
             <img
               src="/Asset-CS.png"
               alt="CS Society"
-              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0 hover:scale-105 transition-all duration-300"
+              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0"
             />
             <img
               src="/Asset-MPPCS.png"
               alt="MPPCS"
-              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0 hover:scale-105 transition-all duration-300"
+              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0"
             />
             <img
               src="/Asset-MDEC.png"
               alt="MDEC"
-              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0 hover:scale-105 transition-all duration-300"
+              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0"
             />
           </div>
 
           {/* SECOND SET OF LOGOS (Animation applied directly here. flex-wrap removed) */}
           <div
             aria-hidden="true"
-            className="flex gap-x-6 md:gap-x-24 items-center gap-y-6 px-6 md:px-12 shrink-0 animate-marquee group-hover:[animation-play-state:paused]"
+            className="flex gap-x-6 md:gap-x-24 items-center gap-y-6 px-6 md:px-12 shrink-0 animate-marquee"
           >
             <img
               src="/Asset-BHEPA.png"
               alt="BHEPA"
-              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0 hover:scale-105 transition-all duration-300"
+              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0"
             />
             <img
               src="/Asset-USM.png"
               alt="USM"
-              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0 hover:scale-105 transition-all duration-300"
+              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0"
             />
             <img
               src="/Asset-CS.png"
               alt="CS Society"
-              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0 hover:scale-105 transition-all duration-300"
+              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0"
             />
             <img
               src="/Asset-MPPCS.png"
               alt="MPPCS"
-              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0 hover:scale-105 transition-all duration-300"
+              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0"
             />
             <img
               src="/Asset-MDEC.png"
               alt="MDEC"
-              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0 hover:scale-105 transition-all duration-300"
+              className="h-[130px] md:h-[150px] w-auto object-contain shrink-0"
             />
           </div>
         </div>
