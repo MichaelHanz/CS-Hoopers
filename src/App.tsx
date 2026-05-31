@@ -1,5 +1,6 @@
 import { db } from "./firebase";
 import { collection, addDoc } from "firebase/firestore";
+import AdminDashboard from "./components/AdminDashboard";
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -329,9 +330,16 @@ const HeroSection = React.memo(function HeroSection() {
 });
 
 export default function App() {
+  // If the URL ends in /admin, hijack the render and show the dashboard instead
+  if (window.location.pathname === "/admin") {
+    return <AdminDashboard />;
+  }
   const registrationSectionRef = useRef<HTMLElement>(null);
   const [showMobileSubmit, setShowMobileSubmit] = useState(false);
   const [expandedPlayer, setExpandedPlayer] = useState<number>(0);
+
+  // The Security Lock
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // State for the Form
   const [formData, setFormData] = useState<TeamRegistration>({
@@ -365,7 +373,7 @@ export default function App() {
       },
       {
         id: "p4",
-        number: "PLAYER 04",
+        number: "PLAYER 04 (SUB)",
         role: "MANDATORY SUB",
         name: "",
         matricNo: "",
@@ -373,7 +381,7 @@ export default function App() {
       },
       {
         id: "p5",
-        number: "PLAYER 05",
+        number: "PLAYER 05 (SUB)",
         role: "OPTIONAL SUB",
         name: "",
         matricNo: "",
@@ -445,6 +453,13 @@ export default function App() {
   // Form validation & submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // 1. THE SHIELD: If it's already submitting, kill the function instantly
+    if (isSubmitting) return;
+
+    // 2. Engage the lock
+    setIsSubmitting(true);
+
     const errors: Record<string, string> = {};
 
     // Validate Team info
@@ -458,17 +473,13 @@ export default function App() {
     // Validate players
     formData.players.forEach((player, idx) => {
       const i = idx + 1;
-
-      // Check if the entire player slot is untouched/empty
       const isSlotEmpty =
         !player.name.trim() && !player.matricNo.trim() && !player.school.trim();
 
-      // Condition: If it is an optional sub and they left it completely blank, skip validation
       if (player.isOptional && isSlotEmpty) {
         return;
       }
 
-      // Otherwise, validate the slot strictly (Mandatory players, or filled-out Optional players)
       if (!player.name.trim()) {
         errors[`p${i}_name`] = `Player 0${i} Name is required`;
       }
@@ -479,7 +490,6 @@ export default function App() {
         errors[`p${i}_school`] = `Player 0${i} School is required`;
       }
 
-      // Player 01 validation for Contact (Team Leader)
       if (idx === 0) {
         if (!player.contactNumber || !player.contactNumber.trim()) {
           errors.p1_contactNumber = "Team Leader Contact Number is required";
@@ -493,6 +503,8 @@ export default function App() {
       if (formElement) {
         formElement.scrollIntoView({ behavior: "smooth" });
       }
+      // Disengage the lock so they can fix errors and try again
+      setIsSubmitting(false);
       return;
     }
 
@@ -508,13 +520,71 @@ export default function App() {
       const docRef = await addDoc(rostersCollection, rosterPayload);
       console.log("SUCCESSFUL REGISTRATION PAYLOAD LOCKED WITH ID:", docRef.id);
 
+      // This triggers the Success Panel to show the team they just registered
       setSubmittedData(formData);
+
+      // 🚨 THE AMNESIA PROTOCOL: WIPE THE FORM CLEAN 🚨
+      // If you have an `initialFormData` constant at the top of your file, you can just do setFormData(initialFormData).
+      // Otherwise, explicitly reset it like this:
+      setFormData({
+        teamName: "",
+        schoolFaculty: "",
+        players: [
+          {
+            id: "p1",
+            number: "PLAYER 01",
+            role: "TEAM LEADER",
+            name: "",
+            matricNo: "",
+            school: "",
+            contactNumber: "",
+            isOptional: false,
+          },
+          {
+            id: "p2",
+            number: "PLAYER 02",
+            role: "ACTIVE ROSTER",
+            name: "",
+            matricNo: "",
+            school: "",
+            isOptional: false,
+          },
+          {
+            id: "p3",
+            number: "PLAYER 03",
+            role: "ACTIVE ROSTER",
+            name: "",
+            matricNo: "",
+            school: "",
+            isOptional: false,
+          },
+          {
+            id: "p4",
+            number: "PLAYER 04 (SUB)",
+            role: "MANDATORY SUB",
+            name: "",
+            matricNo: "",
+            school: "",
+            isOptional: false,
+          },
+          {
+            id: "p5",
+            number: "PLAYER 05 (SUB)",
+            role: "OPTIONAL SUB",
+            name: "",
+            matricNo: "",
+            school: "",
+            isOptional: true,
+          },
+        ],
+      });
 
       setTimeout(() => {
         const successPanel = document.getElementById("success-panel");
         if (successPanel) {
           successPanel.scrollIntoView({ behavior: "smooth", block: "center" });
         }
+        setIsSubmitting(false);
       }, 150);
     } catch (error) {
       console.error("CRITICAL DATABASE CONNECTION ERROR:", error);
@@ -527,6 +597,8 @@ export default function App() {
       if (formElement) {
         formElement.scrollIntoView({ behavior: "smooth" });
       }
+      // Disengage the lock if Firebase fails so they can retry
+      setIsSubmitting(false);
     }
   };
 
@@ -562,7 +634,7 @@ export default function App() {
         },
         {
           id: "p4",
-          number: "PLAYER 04",
+          number: "PLAYER 04 (SUB)",
           role: "MANDATORY SUB",
           name: "",
           matricNo: "",
@@ -570,7 +642,7 @@ export default function App() {
         },
         {
           id: "p5",
-          number: "PLAYER 05",
+          number: "PLAYER 05 (SUB)",
           role: "OPTIONAL SUB",
           name: "",
           matricNo: "",
@@ -1132,16 +1204,21 @@ export default function App() {
                 <button
                   type="submit"
                   id="submit-roster-btn"
-                  className={`relative w-full sm:w-auto min-h-12 inline-flex items-center justify-center font-urban text-lg px-10 py-5 border-2 font-extrabold select-none transition-all cursor-pointer
+                  disabled={isSubmitting || !isFormComplete}
+                  className={`relative w-full sm:w-auto min-h-12 inline-flex items-center justify-center font-urban text-lg px-10 py-5 border-2 font-extrabold select-none transition-all
                   ${
-                    isFormComplete
-                      ? "bg-brand-green text-black border-black shadow-[6px_6px_0px_#ff00ff] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#ff00ff] active:translate-x-[3px] active:translate-y-[3px] active:shadow-[3px_3px_0px_#ff00ff]"
-                      : "bg-zinc-800 text-zinc-400 border-zinc-700 shadow-[4px_4px_0px_#000] hover:bg-zinc-700"
+                    isSubmitting
+                      ? "bg-zinc-700 text-zinc-400 border-zinc-800 shadow-none cursor-wait"
+                      : isFormComplete
+                        ? "bg-brand-green text-black border-black shadow-[6px_6px_0px_#ff00ff] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#ff00ff] active:translate-x-[3px] active:translate-y-[3px] active:shadow-[3px_3px_0px_#ff00ff] cursor-pointer"
+                        : "bg-zinc-800 text-zinc-400 border-zinc-700 shadow-[4px_4px_0px_#000] cursor-not-allowed"
                   }`}
                 >
-                  {isFormComplete
-                    ? "SUBMIT ROSTER"
-                    : `FILL ${remainingFields} MORE FIELDS`}
+                  {isSubmitting
+                    ? "SUBMITTING PAYLOAD..."
+                    : isFormComplete
+                      ? "SUBMIT ROSTER"
+                      : `FILL ${remainingFields} MORE FIELDS`}
                 </button>
               </div>
             </form>
@@ -1224,22 +1301,29 @@ export default function App() {
               exit={{ y: 72, opacity: 0 }}
               transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-black/95 border-t-2 px-4 py-3 backdrop-blur-sm ${
-                isFormComplete ? "border-brand-green" : "border-zinc-800"
+                isFormComplete && !isSubmitting
+                  ? "border-brand-green"
+                  : "border-zinc-800"
               }`}
             >
               <button
                 type="submit"
                 form="registration-inner-form"
-                className={`w-full min-h-12 inline-flex items-center justify-center font-urban text-base border-2 font-extrabold active:translate-y-[2px] transition-all
+                disabled={isSubmitting || !isFormComplete}
+                className={`w-full min-h-12 inline-flex items-center justify-center font-urban text-base border-2 font-extrabold transition-all
                   ${
-                    isFormComplete
-                      ? "bg-brand-green text-black border-black shadow-[4px_4px_0px_#ff00ff]"
-                      : "bg-zinc-800 text-zinc-400 border-zinc-900 shadow-none"
+                    isSubmitting
+                      ? "bg-zinc-700 text-zinc-400 border-zinc-800 shadow-none cursor-wait"
+                      : isFormComplete
+                        ? "bg-brand-green text-black border-black shadow-[4px_4px_0px_#ff00ff] active:translate-y-[2px]"
+                        : "bg-zinc-800 text-zinc-400 border-zinc-900 shadow-none cursor-not-allowed"
                   }`}
               >
-                {isFormComplete
-                  ? "SUBMIT ROSTER"
-                  : `FILL ${remainingFields} MORE FIELDS`}
+                {isSubmitting
+                  ? "SUBMITTING..."
+                  : isFormComplete
+                    ? "SUBMIT ROSTER"
+                    : `FILL ${remainingFields} MORE FIELDS`}
               </button>
             </motion.div>
           )}
