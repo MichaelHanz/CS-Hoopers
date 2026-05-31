@@ -18,11 +18,10 @@ export default function AdminDashboard() {
 
   const [editingTeam, setEditingTeam] = useState<any | null>(null);
 
-  const SECRET_PIN = "HOOP2026";
-
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === SECRET_PIN) {
+    // Vite exposes .env variables via import.meta.env
+    if (password === import.meta.env.VITE_ADMIN_PIN) {
       setIsAuthenticated(true);
       fetchTeams();
     } else {
