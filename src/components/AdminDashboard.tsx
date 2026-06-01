@@ -68,9 +68,9 @@ export default function AdminDashboard() {
 
     try {
       const teamRef = doc(db, "rosters", editingTeam.id);
+      // ONLY updating the fields that still exist in our data model
       await updateDoc(teamRef, {
         teamName: editingTeam.teamName,
-        schoolFaculty: editingTeam.schoolFaculty,
       });
 
       setTeams(teams.map((t) => (t.id === editingTeam.id ? editingTeam : t)));
@@ -163,14 +163,7 @@ export default function AdminDashboard() {
                         {team.teamName}
                       </h3>
                     </div>
-                    <div>
-                      <span className="text-[9px] text-zinc-500 font-mono uppercase block mb-0.5 tracking-widest">
-                        School / Pusat Pengajian :
-                      </span>
-                      <p className="text-zinc-400 font-mono text-sm break-words">
-                        {team.schoolFaculty}
-                      </p>
-                    </div>
+                    {/* School/Faculty block removed from here */}
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 border-t border-zinc-900 pt-4 mt-4">
@@ -179,7 +172,6 @@ export default function AdminDashboard() {
                         key={idx}
                         className="bg-zinc-900/50 p-4 border border-zinc-800 flex flex-col gap-3"
                       >
-                        {/* CHANGED: Now displays "PLAYER 0X" and appends "(SUB)" if applicable */}
                         <span className="text-[10px] text-brand-magenta font-mono uppercase border-b border-zinc-800 pb-2">
                           {player.number}
                           {player.role.includes("SUB") ? " (SUB)" : ""}
@@ -203,16 +195,7 @@ export default function AdminDashboard() {
                           </p>
                         </div>
 
-                        {player.school && (
-                          <div>
-                            <span className="text-[9px] text-zinc-500 font-mono uppercase block mb-0.5">
-                              School / Pusat Pengajian :
-                            </span>
-                            <p className="text-xs text-zinc-300 font-mono truncate">
-                              {player.school}
-                            </p>
-                          </div>
-                        )}
+                        {/* player.school block removed from here */}
 
                         {player.contactNumber && (
                           <div>
@@ -253,7 +236,6 @@ export default function AdminDashboard() {
       {/* EDIT MODAL OVERLAY */}
       {editingTeam && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          {/* Added max-h-screen and overflow-y-auto in case mobile keyboards push the modal off screen */}
           <form
             onSubmit={handleUpdateTeam}
             className="bg-[#0a0a0a] border-2 border-cyan-400 p-6 sm:p-8 max-w-md w-full shadow-[8px_8px_0px_rgba(34,211,238,0.5)] relative max-h-[90vh] overflow-y-auto"
@@ -285,23 +267,7 @@ export default function AdminDashboard() {
                   required
                 />
               </div>
-              <div>
-                <label className="text-xs font-urban uppercase tracking-widest font-extrabold text-white mb-2 block">
-                  School / Faculty
-                </label>
-                <input
-                  type="text"
-                  value={editingTeam.schoolFaculty}
-                  onChange={(e) =>
-                    setEditingTeam({
-                      ...editingTeam,
-                      schoolFaculty: e.target.value,
-                    })
-                  }
-                  className="w-full bg-zinc-900 text-white font-mono py-3 px-4 border border-zinc-700 focus:border-cyan-400 outline-none uppercase"
-                  required
-                />
-              </div>
+              {/* School / Faculty input field removed from here */}
             </div>
 
             <button
