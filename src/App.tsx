@@ -20,14 +20,12 @@ interface Player {
   role: string;
   name: string;
   matricNo: string;
-  school: string;
   contactNumber?: string; // Only for Player 01 (Team Leader)
   isOptional?: boolean; // For substitutes flaging
 }
 
 interface TeamRegistration {
   teamName: string;
-  schoolFaculty: string;
   players: Player[];
 }
 
@@ -420,7 +418,6 @@ export default function App() {
   // State for the Form
   const [formData, setFormData] = useState<TeamRegistration>({
     teamName: "",
-    schoolFaculty: "",
     players: [
       {
         id: "p1",
@@ -428,7 +425,6 @@ export default function App() {
         role: "TEAM LEADER",
         name: "",
         matricNo: "",
-        school: "",
         contactNumber: "",
       },
       {
@@ -437,7 +433,6 @@ export default function App() {
         role: "ACTIVE ROSTER",
         name: "",
         matricNo: "",
-        school: "",
       },
       {
         id: "p3",
@@ -445,7 +440,6 @@ export default function App() {
         role: "ACTIVE ROSTER",
         name: "",
         matricNo: "",
-        school: "",
       },
       {
         id: "p4",
@@ -453,7 +447,6 @@ export default function App() {
         role: "MANDATORY SUB",
         name: "",
         matricNo: "",
-        school: "",
       },
       {
         id: "p5",
@@ -461,7 +454,6 @@ export default function App() {
         role: "OPTIONAL SUB",
         name: "",
         matricNo: "",
-        school: "",
         isOptional: true,
       },
     ],
@@ -479,10 +471,7 @@ export default function App() {
   );
 
   // Input change handler for top level team details
-  const handleTeamChange = (
-    field: "teamName" | "schoolFaculty",
-    value: string,
-  ) => {
+  const handleTeamChange = (field: "teamName", value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -542,15 +531,11 @@ export default function App() {
     if (!formData.teamName.trim()) {
       errors.teamName = "Team Name is required";
     }
-    if (!formData.schoolFaculty.trim()) {
-      errors.schoolFaculty = "School/Faculty is required";
-    }
 
     // Validate players
     formData.players.forEach((player, idx) => {
       const i = idx + 1;
-      const isSlotEmpty =
-        !player.name.trim() && !player.matricNo.trim() && !player.school.trim();
+      const isSlotEmpty = !player.name.trim() && !player.matricNo.trim();
 
       if (player.isOptional && isSlotEmpty) {
         return;
@@ -562,10 +547,6 @@ export default function App() {
       if (!player.matricNo.trim()) {
         errors[`p${i}_matricNo`] = `Player 0${i} Matric/Student ID is required`;
       }
-      if (!player.school.trim()) {
-        errors[`p${i}_school`] = `Player 0${i} School is required`;
-      }
-
       if (idx === 0) {
         if (!player.contactNumber || !player.contactNumber.trim()) {
           errors.p1_contactNumber = "Team Leader Contact Number is required";
@@ -604,7 +585,6 @@ export default function App() {
       // Otherwise, explicitly reset it like this:
       setFormData({
         teamName: "",
-        schoolFaculty: "",
         players: [
           {
             id: "p1",
@@ -612,7 +592,6 @@ export default function App() {
             role: "TEAM LEADER",
             name: "",
             matricNo: "",
-            school: "",
             contactNumber: "",
             isOptional: false,
           },
@@ -622,7 +601,6 @@ export default function App() {
             role: "ACTIVE ROSTER",
             name: "",
             matricNo: "",
-            school: "",
             isOptional: false,
           },
           {
@@ -631,7 +609,6 @@ export default function App() {
             role: "ACTIVE ROSTER",
             name: "",
             matricNo: "",
-            school: "",
             isOptional: false,
           },
           {
@@ -640,7 +617,6 @@ export default function App() {
             role: "MANDATORY SUB",
             name: "",
             matricNo: "",
-            school: "",
             isOptional: false,
           },
           {
@@ -649,7 +625,6 @@ export default function App() {
             role: "OPTIONAL SUB",
             name: "",
             matricNo: "",
-            school: "",
             isOptional: true,
           },
         ],
@@ -681,7 +656,6 @@ export default function App() {
   const handleResetForm = () => {
     setFormData({
       teamName: "",
-      schoolFaculty: "",
       players: [
         {
           id: "p1",
@@ -689,7 +663,6 @@ export default function App() {
           role: "TEAM LEADER",
           name: "",
           matricNo: "",
-          school: "",
           contactNumber: "",
         },
         {
@@ -698,7 +671,6 @@ export default function App() {
           role: "ACTIVE ROSTER",
           name: "",
           matricNo: "",
-          school: "",
         },
         {
           id: "p3",
@@ -706,7 +678,6 @@ export default function App() {
           role: "ACTIVE ROSTER",
           name: "",
           matricNo: "",
-          school: "",
         },
         {
           id: "p4",
@@ -714,7 +685,6 @@ export default function App() {
           role: "MANDATORY SUB",
           name: "",
           matricNo: "",
-          school: "",
         },
         {
           id: "p5",
@@ -722,7 +692,6 @@ export default function App() {
           role: "OPTIONAL SUB",
           name: "",
           matricNo: "",
-          school: "",
           isOptional: true, // Crucial flag for the validation engine
         },
       ],
@@ -779,14 +748,12 @@ export default function App() {
     let target = 0;
 
     // 1. Base Team Info
-    target += 2; // Team Name + School/Faculty
+    target += 1; // Team Name
     if (formData.teamName.trim()) completed++;
-    if (formData.schoolFaculty.trim()) completed++;
 
     // 2. Dynamic Player Info
     formData.players.forEach((p, idx) => {
-      const isSlotEmpty =
-        !p.name.trim() && !p.matricNo.trim() && !p.school.trim();
+      const isSlotEmpty = !p.name.trim() && !p.matricNo.trim();
 
       // If it's an optional sub and completely blank, it adds nothing to the target
       if (p.isOptional && isSlotEmpty) {
@@ -794,15 +761,14 @@ export default function App() {
       }
 
       // Calculate how many fields this specific player SHOULD have
-      let expectedForThisPlayer = 3; // Name, Matric, School
-      if (idx === 0) expectedForThisPlayer = 4; // Leader has Contact Number
+      let expectedForThisPlayer = 2; // Name, Matric
+      if (idx === 0) expectedForThisPlayer = 3; // Leader has Contact Number
 
       target += expectedForThisPlayer; // Dynamically raise the required denominator
 
       // Tally the fields they actually filled out
       if (p.name.trim()) completed++;
       if (p.matricNo.trim()) completed++;
-      if (p.school.trim()) completed++;
       if (idx === 0 && p.contactNumber?.trim()) completed++;
     });
 
@@ -913,8 +879,9 @@ export default function App() {
             {/* Hand-drawn/graffiti paint brush looking thick underline like in image */}
             <div className="h-4 w-48 bg-brand-magenta mx-auto my-4 transform rotate-[-2.5deg] skew-x-[-10deg] opacity-90 shadow-[2px_2px_0px_#000]"></div>
             <p className="font-sans text-zinc-400 max-w-md mx-auto text-sm md:text-base">
-              Lock in your 3-member + 2 substitutes in the team. Finalize your
-              roster for the 3v3 battle. No excuses.
+              Lock in your 3-member + 1 mandatory substitute and 1 optional
+              substitute in the team. Finalize your roster for the 3v3 battle.
+              Let's ball 🏀🏀
             </p>
           </div>
 
@@ -989,67 +956,91 @@ export default function App() {
               </div>
 
               {/* TEAM IDENTITY MODULE */}
-              <div id="team-identity-block" className="mb-14">
-                <div className="tape-label mb-8">TEAM NAME</div>
+              <div
+                id="team-identity-block"
+                className="mb-12 w-full flex flex-col items-start"
+              >
+                {/* Tape Label - Left Aligned for sleek visual flow */}
+                <div className="mb-6">
+                  <div className="tape-label">TEAM NAME</div>
+                </div>
 
-                {/* Grid 2 Column for Team Meta */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Team Name Input */}
-                  <div className="flex flex-col gap-2">
-                    <label className="font-urban text-brand-magenta tracking-wider text-xs uppercase font-extrabold">
-                      TEAM NAME
-                    </label>
-                    <input
-                      type="text"
-                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.teamName ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
+                {/* Hero Input Container - Full width to match the roster box below */}
+                <div className="w-full flex flex-col gap-4">
+                  {/* The 'group' wrapper allows us to trigger effects on the background when the input is focused */}
+                  <div className="relative group cursor-text w-full">
+                    {/* The Dynamic Brutalist Shadow (Tighter on mobile, identical on desktop) */}
+                    <div
+                      className={`absolute inset-0 translate-x-1.5 translate-y-1.5 md:translate-x-3 md:translate-y-3 transition-all duration-300 ease-out ${
+                        formErrors.teamName
+                          ? "bg-brand-magenta"
+                          : "bg-brand-magenta group-focus-within:bg-cyan-400 group-focus-within:translate-x-2.5 group-focus-within:translate-y-2.5 md:group-focus-within:translate-x-5 md:group-focus-within:translate-y-5"
+                      }`}
+                    ></div>
+
+                    {/* The Actual Input Field - Scaled down for mobile, untouched for desktop */}
+                    <textarea
+                      rows={1}
+                      className={`
+                        relative z-10 w-full bg-[#0a0a0a] text-white text-left
+                        placeholder-zinc-800 font-urban text-lg md:text-4xl py-3 px-4 md:py-1 md:px-6
+                        border-4 ${
+                          formErrors.teamName
+                            ? "border-brand-magenta"
+                            : "border-zinc-800 focus:border-cyan-400"
+                        }
+                        outline-none transition-colors duration-300
+                        uppercase tracking-[0.1em] md:tracking-[0.2em] font-black skew-x-[-2deg]
+                        focus:shadow-[0_0_30px_rgba(0,255,255,0.2)]
+                        resize-none overflow-hidden leading-normal min-h-[52px] md:min-h-[80px]
+                      `}
                       value={formData.teamName}
-                      onChange={(e) =>
-                        handleTeamChange("teamName", e.target.value)
-                      }
+                      onChange={(e) => {
+                        // 1. Send the cleaned value to state (no newlines allowed)
+                        handleTeamChange(
+                          "teamName",
+                          e.target.value.replace(/\n/g, ""),
+                        );
+
+                        // 2. Auto-expand magic: Reset height, then snap to new scroll height
+                        e.target.style.height = "60px";
+                        e.target.style.height = `${e.target.scrollHeight}px`;
+                      }}
                       placeholder="CS BALLERS"
                       name="teamName"
                       autoComplete="organization"
                       autoCapitalize="characters"
                     />
-                    <AnimatedError error={formErrors.teamName} />
                   </div>
 
-                  {/* Team School Faculty Input */}
-                  <div className="flex flex-col gap-2">
-                    <label className="font-urban text-brand-magenta tracking-wider text-xs uppercase font-extrabold">
-                      SCHOOL/PUSAT PENGAJIAN
-                    </label>
-                    <input
-                      type="text"
-                      className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${formErrors.schoolFaculty ? "border-brand-magenta" : "border-black focus:border-brand-green"} outline-none focus:ring-4 focus:ring-brand-green/30 text-sm skew-x-[-0.5deg] uppercase`}
-                      value={formData.schoolFaculty}
-                      onChange={(e) =>
-                        handleTeamChange("schoolFaculty", e.target.value)
-                      }
-                      placeholder="School Of Computer Sciences"
-                      name="schoolFaculty"
-                      autoComplete="organization-title"
-                      autoCapitalize="characters"
-                    />
-                    <AnimatedError error={formErrors.schoolFaculty} />
+                  {/* Error message aligned to the left under the input */}
+                  <div className="flex justify-start mt-1">
+                    <AnimatedError error={formErrors.teamName} />
                   </div>
                 </div>
               </div>
 
-              {/* TEAM ROSTER MODULE */}
-              <div id="roster-players-block" className="space-y-12">
-                <div className="relative mb-8">
-                  <div className="absolute inset-0 border-2 border-brand-green translate-x-1.5 translate-y-1.5 pointer-events-none z-0"></div>
-                  <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-zinc-900/90 p-4 border-l-4 border-brand-green">
-                    <span className="bg-brand-green text-black px-4 py-1 font-stencil font-bold tracking-widest text-sm transform rotate-[-1deg]">
-                      TEAM ROSTER (03 PLAYERS REQUIRED)
-                    </span>
-                    <span className="font-mono text-xs text-brand-green tracking-widest animate-pulse font-bold">
-                      STATUS: LOCKED_3V3
-                    </span>
-                  </div>
+              {/* --- SQUAD ROSTER SECTION HEADER --- */}
+              <div className="w-full flex flex-col items-start mt-8 mb-8">
+                {/* Reusing the tape-label to perfectly match the website's aesthetic */}
+                <div className="mb-5">
+                  <div className="tape-label">TEAM ROSTER</div>
                 </div>
 
+                {/* Sleek, minimal requirement tags replacing the old bulky green box */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-cyan-400 font-mono text-[10px] md:text-xs tracking-[0.1em] uppercase border border-cyan-400/30 px-2.5 py-1 bg-cyan-400/10 shadow-[0_0_10px_rgba(0,255,255,0.1)]">
+                    03 Players + 1 Sub Required
+                  </span>
+                  <span className="text-zinc-500 font-mono text-[10px] md:text-xs tracking-widest uppercase">
+                    Status: Locked_3v3
+                  </span>
+                </div>
+              </div>
+              {/* ----------------------------------- */}
+
+              {/* TEAM ROSTER MODULE */}
+              <div id="roster-players-block" className="space-y-12">
                 {/* Player Iteration */}
                 {formData.players.map((player, index) => {
                   const playerNumString = player.number; // e.g. "PLAYER 01"
@@ -1134,7 +1125,8 @@ export default function App() {
                             transition={{ duration: 0.3 }}
                             className="overflow-hidden"
                           >
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 font-sans mt-4">
+                            {/* Adjusted grid layout to perfectly balance 2 columns instead of 3 */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10 font-sans mt-4">
                               {/* Name input */}
                               <div className="flex flex-col gap-1.5">
                                 <label
@@ -1199,39 +1191,7 @@ export default function App() {
                                 />
                               </div>
 
-                              {/* School Field */}
-                              <div className="flex flex-col gap-1.5 md:col-span-2 lg:col-span-1">
-                                <label
-                                  className={`text-xs font-urban uppercase tracking-widest font-extrabold ${player.isOptional ? "text-cyan-400" : "text-brand-magenta"}`}
-                                >
-                                  School / Pusat Pengajian
-                                </label>
-                                <input
-                                  type="text"
-                                  value={player.school}
-                                  onChange={(e) =>
-                                    handlePlayerChange(
-                                      index,
-                                      "school",
-                                      e.target.value,
-                                    )
-                                  }
-                                  placeholder="School of Computer Science"
-                                  className={`w-full bg-white text-black placeholder-zinc-400 font-mono py-3.5 px-4 border-2 ${
-                                    formErrors[`${errorPrefix}school`]
-                                      ? "border-brand-magenta"
-                                      : `border-black focus:${player.isOptional ? "border-cyan-400" : "border-brand-green"}`
-                                  } outline-none focus:ring-4 ${player.isOptional ? "focus:ring-cyan-400/30" : "focus:ring-brand-green/30"} text-sm skew-x-[-0.5deg] uppercase`}
-                                  autoComplete="organization"
-                                  autoCapitalize="characters"
-                                />
-                                <AnimatedError
-                                  error={formErrors[`${errorPrefix}school`]}
-                                  className="text-[11px] text-brand-magenta font-mono"
-                                />
-                              </div>
-
-                              {/* Contact Number (Leader Only) - Left unchanged as Leader is never optional */}
+                              {/* Contact Number (Leader Only) */}
                               {isLeader && (
                                 <div className="flex flex-col gap-1.5 md:col-span-2">
                                   <label className="text-xs font-urban text-brand-green uppercase tracking-widest font-extrabold">
