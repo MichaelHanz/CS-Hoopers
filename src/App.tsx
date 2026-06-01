@@ -3,6 +3,7 @@ import { collection, addDoc } from "firebase/firestore";
 import AdminDashboard from "./components/AdminDashboard";
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+
 import {
   Calendar,
   MapPin,
@@ -405,9 +406,11 @@ const HeroSection = React.memo(function HeroSection() {
 
 export default function App() {
   // If the URL ends in /admin, hijack the render and show the dashboard instead
+
   if (window.location.pathname === "/admin") {
     return <AdminDashboard />;
   }
+
   const registrationSectionRef = useRef<HTMLElement>(null);
   const [showMobileSubmit, setShowMobileSubmit] = useState(false);
   const [expandedPlayer, setExpandedPlayer] = useState<number>(0);
@@ -795,7 +798,7 @@ export default function App() {
         DUNK
       </div>
       <div className="hidden xl:block graffiti-tag bottom-[25%] left-[6%] rotate-[-7deg] text-brand-cyan select-none">
-        UTM
+        CS
       </div>
 
       {/* Left and Right Side Gritty Athlete Murals on Large Desktops */}
@@ -872,9 +875,15 @@ export default function App() {
             <h2
               id="registration-title"
               className="font-urban font-extrabold text-4xl md:text-6xl text-white uppercase italic tracking-tighter inline-block"
-              data-text="ENTER THE ARENA"
             >
-              ENTER THE <span className="text-brand-green">ARENA</span>
+              {/* Removed data-text from the h2 and moved the glitch logic exclusively to the span */}
+              ENTER THE{" "}
+              <span
+                className="text-brand-green glitch-effect inline-block relative"
+                data-text="ARENA"
+              >
+                ARENA
+              </span>
             </h2>
             {/* Hand-drawn/graffiti paint brush looking thick underline like in image */}
             <div className="h-4 w-48 bg-brand-magenta mx-auto my-4 transform rotate-[-2.5deg] skew-x-[-10deg] opacity-90 shadow-[2px_2px_0px_#000]"></div>
@@ -1373,7 +1382,14 @@ export default function App() {
       >
         <div className="mb-14 relative inline-block">
           <h2 className="font-urban text-4xl text-white uppercase italic tracking-tighter">
-            STREET <span className="text-brand-green">FAQ</span>
+            STREET{" "}
+            {/* Added glitch-effect, inline-block, relative, and data-text right here */}
+            <span
+              className="text-brand-green glitch-effect inline-block relative"
+              data-text="FAQ"
+            >
+              FAQ
+            </span>
           </h2>
           <div className="h-2 w-full bg-brand-green mt-2"></div>
         </div>
